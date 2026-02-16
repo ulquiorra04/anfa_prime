@@ -6,6 +6,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import MealPage from './pages/meal.tsx'
 import MenuPage from './pages/menu.tsx'
 import Accueil from './pages/accueil.tsx'
+import OrderPage from './pages/order.tsx'
 
 const router = createBrowserRouter([
   {
@@ -13,6 +14,7 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <Accueil /> },
+      { path: '/orders', element: <OrderPage /> },
       { path: '/meal', element: <MealPage /> },
       { path: '/menu/:meal', element: <MenuPage /> },
     ],

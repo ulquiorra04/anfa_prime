@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import Meal from "../components/meal/Meal";
 import type { MealDto } from "../models/meal";
-import type { PersonDto } from "../models/person";
 
 function MealPage () {
 
