@@ -1,0 +1,31 @@
+{
+    "id": 1,
+    "name": "ABDELHAMID RAHMAOUI",
+    "sejour": "HPT0001",
+    "orders": [
+        {
+            "id": 1,
+            "meal": {},
+            "menu": {},
+            "status": 0
+        },
+        {
+            "id": 2,
+            "meal": {},
+            "menu": {},
+            "status": 1
+        },
+        {
+            "id": 3,
+            "meal": {},
+            "menu": {},
+            "status": 2
+        },
+        {
+            "id": 4,
+            "meal": {},
+            "menu": {},
+            "status": 3
+        }
+    ]
+}
