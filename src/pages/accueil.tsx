@@ -10,6 +10,7 @@ function Accueil() {
         console.log(v[0].rawValue);
 
         localStorage.setItem('patient', v[0].rawValue);
+        localStorage.setItem('storedAt', new Date().toISOString());
         navigate('/meal');
     }
 
