@@ -24,6 +24,25 @@ export default function Navbar() {
     fetchSejour();
   }, []);
 
+  // Fonction pour formater le nom (première lettre en majuscule, reste en minuscules)
+  const formatName = (name: string) => {
+    if (!name) return "";
+    
+    return name
+      .split(' ')
+      .map(word => {
+        if (word.length === 0) return word;
+        return word
+          .split('-')
+          .map(part => {
+            if (part.length === 0) return part;
+            return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+          })
+          .join('-');
+      })
+      .join(' ');
+  };
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-[#dde8f0] bg-white/90 backdrop-blur-md dark:border-[#1e2f3d] dark:bg-[#0d1b26]/92 transition-colors duration-300 relative">
       <div className="mx-auto flex h-[60px] max-w-7xl items-center justify-between gap-4 px-5 md:h-[68px] md:px-8">
@@ -38,9 +57,9 @@ export default function Navbar() {
             <span className="hidden text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-[#7a9baf] sm:block">
               Welcome back
             </span>
-            <span className="truncate text-lg font-bold leading-tight text-[#0d2233] dark:text-[#ddeef7] sm:text-xl md:text-2xl [font-family:'Lora',Georgia,serif]">
+            <span className="truncate text-lg font-bold leading-tight text-[#0d2233] dark:text-[#ddeef7] sm:text-xl md:text-2xl ">
               {sejour?.name ? (
-                <em className="not-italic text-[#2a7db5]">{sejour.name}</em>
+                <em className="not-italic text-[#2a7db5]">{formatName(sejour.name)}</em>
               ) : (
                 "Your Menu"
               )}

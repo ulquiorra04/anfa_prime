@@ -1,14 +1,29 @@
 [
     {
         "id": 1,
-        "name": "Menu 1"
+        "name": "Menu 1",
+        "body":{
+            "entree": "Salade verte",
+            "plat": "Poulet rôti avec légumes",
+            "dessert": "Tarte aux pommes"
+        }
     },
     {
         "id": 2,
-        "name": "Menu 2"
+        "name": "Menu 2",
+        "body":{
+            "entree": "Soupe de légumes",
+            "plat": "Steak avec frites",
+            "dessert": "Mousse au chocolat"
+        }
     },
     {
         "id": 3,
-        "name": "Menu 3"
+        "name": "Menu 3",
+        "body":{
+            "entree": "Carpaccio de saumon",
+            "plat": "Risotto aux champignons",
+            "dessert": "Panna cotta"
+        }
     }
 ]
