@@ -1,14 +1,17 @@
 [
     {
         "id": 1,
-        "name": "Menu 1"
+        "name": "Menu 1",
+        "body" : ""
     },
     {
         "id": 2,
-        "name": "Menu 2"
+        "name": "Menu 2",
+        "body" : ""
     },
     {
         "id": 3,
-        "name": "Menu 3"
+        "name": "Menu 3",
+        "body" : ""
     }
 ]
