@@ -3,7 +3,7 @@ import type { MenuBody } from "./menuBody";
 export interface MenuDto {
   id: number;
   name: string;
-  body: MenuBody;
+  body: string[];
 }
 
 export const TAB_THEMES = [

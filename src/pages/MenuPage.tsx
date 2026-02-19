@@ -20,14 +20,15 @@ const MenuPage = () => {
     const load = async () => {
       try {
         setLoading(true);
-        const sejourRes = await fetch("/data/sejour.json");
+        //const sejourRes = await fetch("/data/sejour.json");
+        const sejourRes = await fetch(`${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_MENU}`);
         const sejour = await sejourRes.json();
         if (sejour?.name) setUsername(sejour.name);
         if (menusFromState && menusFromState.length > 0) {
           setMenus(menusFromState);
           return;
         }
-        const menusRes = await fetch("/data/menus.json");
+        const menusRes = await fetch(`${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_MENU}`);
         const data: MenuDto[] = await menusRes.json();
         setMenus(data);
       } catch (err) {
@@ -156,9 +157,17 @@ const MenuPage = () => {
                     transition={{ duration: 0.25, ease: 'easeOut' }}
                     className="flex flex-col gap-2.5"
                   >
-                    <CourseRow icon={Salad}          label="Entrée"         value={activeMenu.body.entree}  bar={theme.entree}  />
-                    <CourseRow icon={UtensilsCrossed} label="Plat principal" value={activeMenu.body.plat}    bar={theme.plat}    />
-                    <CourseRow icon={Cake}            label="Dessert"        value={activeMenu.body.dessert} bar={theme.dessert} />
+                    {
+                      activeMenu.body.map(
+                        (el, idx) => {
+                          return (
+                            <>
+                              <CourseRow icon={Salad} label={`Plat ${idx+1}`} value={el}  bar={theme.entree}  />
+                            </>
+                          );
+                        }
+                      )
+                    }
                   </motion.div>
                 )}
               </AnimatePresence>

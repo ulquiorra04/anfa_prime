@@ -48,9 +48,11 @@ const MealsPage = () => {
     const fetchMeals = async () => {
       try {
         setLoading(true);
-        const response = await fetch('data/meals.json');
+        //const response = await fetch('data/meals.json');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_MEALS}`);
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
+        console.log(data);
         setMeals(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load meals');
