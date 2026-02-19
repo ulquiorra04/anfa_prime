@@ -1,8 +1,17 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  CheckCircle, Utensils, User, Calendar,
-  ChefHat, Salad, UtensilsCrossed, Cake, Home,
+  CheckCircle,
+  Utensils,
+  User,
+  Calendar,
+  ChefHat,
+  Salad,
+  UtensilsCrossed,
+  Cake,
+  Home,
+  Loader2,
+  Send,
 } from "lucide-react";
 import type { MenuDto } from "@/models/menu";
 import type { MealDto } from "@/models/meal";
@@ -13,7 +22,6 @@ interface RecapState {
   menu?: MenuDto;
 }
 
-/* ── Helpers ──────────────────────────────────────────────────────────── */
 const formatDate = () =>
   new Date().toLocaleDateString("fr-FR", {
     weekday: "long",
@@ -23,10 +31,12 @@ const formatDate = () =>
   });
 
 const formatTime = () =>
-  new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  new Date().toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
-const generateRef = () =>
-  Math.random().toString(36).slice(2, 8).toUpperCase();
+const generateRef = () => Math.random().toString(36).slice(2, 8).toUpperCase();
 
 /* ── Info row ─────────────────────────────────────────────────────────── */
 const InfoRow = ({
@@ -94,21 +104,67 @@ const RecapPage = () => {
   const meal = state?.meal;
   const menu = state?.menu;
 
-  // useState initializer runs once — safe from re-render impurity
   const [ref] = useState<string>(generateRef);
   const [date] = useState<string>(formatDate);
   const [time] = useState<string>(formatTime);
 
+  // ── Confirm order state ──
+  const [confirmStatus, setConfirmStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
+  const handleConfirm = async () => {
+    if (confirmStatus === "loading" || confirmStatus === "success") return;
+
+    const payload = {
+      reference: ref,
+      username,
+      meal_id: meal?.id,
+      meal_name: meal?.name,
+      menu_id: menu?.id,
+      menu_name: menu?.name,
+      menu_body: menu?.body,
+      ordered_at: new Date().toISOString(),
+    };
+
+    try {
+      setConfirmStatus("loading");
+      setErrorMessage("");
+
+      const response = await fetch("/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `Server error: ${response.status}`);
+      }
+
+      setConfirmStatus("success");
+    } catch (err) {
+      setConfirmStatus("error");
+      setErrorMessage(
+        err instanceof Error ? err.message : "Something went wrong"
+      );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f4f9fd] px-5 py-10 transition-colors duration-300 dark:bg-[#0a1520] sm:py-14">
       <div className="mx-auto max-w-xl">
-
         {/* ── Success banner ── */}
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#b8f6fe] bg-[#e0f9f7] shadow-lg shadow-[#02c39a]/10 dark:border-[#014d57] dark:bg-[#001a1d]">
-            <CheckCircle size={30} className="text-[#02c39a] dark:text-[#46fdd5]" strokeWidth={1.8} />
+            <CheckCircle
+              size={30}
+              className="text-[#02c39a] dark:text-[#46fdd5]"
+              strokeWidth={1.8}
+            />
           </div>
-          <h1 className=" text-2xl font-bold text-[#0d2233] dark:text-[#ddeef7] sm:text-3xl">
+          <h1 className="text-2xl font-bold text-[#0d2233] dark:text-[#ddeef7] sm:text-3xl">
             Order <em className="italic text-[#02c39a]">confirmed</em>
           </h1>
           <p className="mt-1.5 text-sm font-light text-[#5c85a0] dark:text-[#7a9baf]">
@@ -135,7 +191,9 @@ const RecapPage = () => {
               <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-[#7a9baf]">
                 Placed at
               </p>
-              <p className="text-sm font-semibold text-[#0d2233] dark:text-[#ddeef7]">{time}</p>
+              <p className="text-sm font-semibold text-[#0d2233] dark:text-[#ddeef7]">
+                {time}
+              </p>
             </div>
           </div>
 
@@ -150,8 +208,8 @@ const RecapPage = () => {
               </p>
             </div>
             <div className="flex flex-col gap-2">
-              <InfoRow icon={User}     label="Patient name" value={username} />
-              <InfoRow icon={Calendar} label="Order date"   value={date} />
+              <InfoRow icon={User} label="Patient name" value={username} />
+              <InfoRow icon={Calendar} label="Order date" value={date} />
             </div>
           </div>
 
@@ -166,8 +224,13 @@ const RecapPage = () => {
               </p>
             </div>
             <div className="flex flex-col gap-2">
-              <InfoRow icon={Utensils} label="Meal"         value={meal?.name ?? "—"} />
-              <InfoRow icon={ChefHat}  label="Menu chosen"  value={menu?.name ?? "—"} accent />
+              <InfoRow icon={Utensils} label="Meal" value={meal?.name ?? "—"} />
+              <InfoRow
+                icon={ChefHat}
+                label="Menu chosen"
+                value={menu?.name ?? ""}
+                accent
+              />
             </div>
           </div>
 
@@ -183,17 +246,71 @@ const RecapPage = () => {
                   </p>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <CourseTag icon={Salad}          label="Entrée"  value={menu.body.entree}  color="bg-[#e6fff9] text-[#02c39a] dark:bg-[#00271f] dark:text-[#46fdd5]" />
-                  <CourseTag icon={UtensilsCrossed} label="Plat"   value={menu.body.plat}    color="bg-[#e0f9f7] text-[#028090] dark:bg-[#001a1d] dark:text-[#29e3fc]" />
-                  <CourseTag icon={Cake}            label="Dessert" value={menu.body.dessert} color="bg-[#e8f4fb] text-[#05668d] dark:bg-[#01151d] dark:text-[#2dbef7]" />
+                  <CourseTag
+                    icon={Salad}
+                    label="Entrée"
+                    value={menu.body.entree}
+                    color="bg-[#e6fff9] text-[#02c39a] dark:bg-[#00271f] dark:text-[#46fdd5]"
+                  />
+                  <CourseTag
+                    icon={UtensilsCrossed}
+                    label="Plat"
+                    value={menu.body.plat}
+                    color="bg-[#e0f9f7] text-[#028090] dark:bg-[#001a1d] dark:text-[#29e3fc]"
+                  />
+                  <CourseTag
+                    icon={Cake}
+                    label="Dessert"
+                    value={menu.body.dessert}
+                    color="bg-[#e8f4fb] text-[#05668d] dark:bg-[#01151d] dark:text-[#2dbef7]"
+                  />
                 </div>
               </div>
             </>
           )}
         </article>
 
+        {/* ── Error message ── */}
+        {confirmStatus === "error" && (
+          <div className="mt-4 rounded-xl border border-[#f0c0c0] bg-[#fdf0f0] px-4 py-3 text-sm text-[#b03a3a] dark:border-[#3d1515] dark:bg-[#2a0d0d] dark:text-[#f08080]">
+            {errorMessage || "Failed to place order. Please try again."}
+          </div>
+        )}
+
         {/* ── Actions ── */}
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          {/* Confirm Order button */}
+          <button
+            onClick={handleConfirm}
+            disabled={confirmStatus === "loading" || confirmStatus === "success"}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white shadow-lg transition-all duration-200
+              ${confirmStatus === "success"
+                ? "bg-[#02c39a] shadow-[#02c39a]/20 cursor-default"
+                : confirmStatus === "loading"
+                ? "bg-[#2a7db5]/70 shadow-[#2a7db5]/10 cursor-not-allowed"
+                : "bg-[#2a7db5] shadow-[#2a7db5]/20 hover:scale-[1.01] hover:bg-[#1e6fa0] active:scale-[0.99]"
+              }
+            `}
+          >
+            {confirmStatus === "loading" ? (
+              <>
+                <Loader2 size={15} className="animate-spin" />
+                Sending…
+              </>
+            ) : confirmStatus === "success" ? (
+              <>
+                <CheckCircle size={15} />
+                Order Sent!
+              </>
+            ) : (
+              <>
+                <Send size={15} />
+                Confirm Order
+              </>
+            )}
+          </button>
+
+          {/* Back to home */}
           <button
             onClick={() => navigate("/order")}
             className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#05668d] py-3 text-sm font-bold text-white shadow-lg shadow-[#05668d]/20 transition-all duration-200 hover:scale-[1.01] hover:bg-[#045372] active:scale-[0.99]"
