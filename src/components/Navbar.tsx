@@ -14,7 +14,8 @@ export default function Navbar() {
   useEffect(() => {
     const fetchSejour = async () => {
       try {
-        const response = await fetch("data/sejour.json");
+        // const response = await fetch("data/sejour.json");
+         const response = await fetch(`${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_HISTORY}`);
         const data = await response.json();
         setSejour(data);
       } catch (error) {

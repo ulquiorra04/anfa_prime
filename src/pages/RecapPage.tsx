@@ -2,14 +2,14 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   CheckCircle, Utensils, User, Calendar,
-  ChefHat, Salad, UtensilsCrossed, Cake, Home,
+  ChefHat, Salad, Home,
 } from "lucide-react";
 import type { MenuDto } from "@/models/menu";
-import type { MealDto } from "@/models/meal";
+import type { MealsDto } from "@/models/meal";
 
 interface RecapState {
   username?: string;
-  meal?: MealDto;
+  meal?: MealsDto;
   menu?: MenuDto;
 }
 
@@ -93,6 +93,8 @@ const RecapPage = () => {
   const username = state?.username ?? "Patient";
   const meal = state?.meal;
   const menu = state?.menu;
+  console.log('meals',meal);
+  
 
   // useState initializer runs once — safe from re-render impurity
   const [ref] = useState<string>(generateRef);
@@ -119,7 +121,7 @@ const RecapPage = () => {
         {/* ── Recap card ── */}
         <article className="overflow-hidden rounded-2xl border border-[#ccdfe9] bg-white shadow-sm dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">
           {/* Top bar */}
-          <div className="h-1 w-full bg-gradient-to-r from-[#bbfff8] to-[#02c39a]" />
+          <div className="h-1 w-full bg-linear-to-r from-[#bbfff8] to-[#02c39a]" />
 
           {/* Order ref + time */}
           <div className="flex items-center justify-between px-7 pb-4 pt-6">
@@ -172,7 +174,7 @@ const RecapPage = () => {
           </div>
 
           {/* Course breakdown */}
-          {menu?.body && (
+          {menu?.body && menu.body.length > 0 &&(
             <>
               <div className="mx-7 mt-5 h-px bg-[#dde8f0] dark:bg-[#1a2d3e]" />
               <div className="px-7 pb-6 pt-5">
@@ -183,9 +185,21 @@ const RecapPage = () => {
                   </p>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <CourseTag icon={Salad}          label="Entrée"  value={menu.body.entree}  color="bg-[#e6fff9] text-[#02c39a] dark:bg-[#00271f] dark:text-[#46fdd5]" />
-                  <CourseTag icon={UtensilsCrossed} label="Plat"   value={menu.body.plat}    color="bg-[#e0f9f7] text-[#028090] dark:bg-[#001a1d] dark:text-[#29e3fc]" />
-                  <CourseTag icon={Cake}            label="Dessert" value={menu.body.dessert} color="bg-[#e8f4fb] text-[#05668d] dark:bg-[#01151d] dark:text-[#2dbef7]" />
+                  {menu.body.map((item, idx) => (
+                    <CourseTag
+                      key={idx}
+                      icon={Salad}
+                      label={`Plat ${idx + 1}`}
+                      value={item}
+                      color={
+                        idx === 0
+                          ? "bg-[#e6fff9] text-[#02c39a] dark:bg-[#00271f] dark:text-[#46fdd5]"
+                          : idx === 1
+                          ? "bg-[#e0f9f7] text-[#028090] dark:bg-[#001a1d] dark:text-[#29e3fc]"
+                          : "bg-[#e8f4fb] text-[#05668d] dark:bg-[#01151d] dark:text-[#2dbef7]"
+                      }
+                    />
+                  ))}
                 </div>
               </div>
             </>

@@ -1,13 +1,9 @@
 import { Coffee, Pizza, Soup } from "lucide-react";
-import type { MenuDto } from "./menu";
 
-export interface MealDto {
+export interface MealsDto {
   id: number;
   name: string;
-  description?: string;
-  duration?: string;
-  servings?: number;
-  menus?: MenuDto[];
+
 }
 
 

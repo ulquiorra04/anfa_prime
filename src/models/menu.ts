@@ -1,4 +1,3 @@
-import type { MenuBody } from "./menuBody";
 
 export interface MenuDto {
   id: number;
