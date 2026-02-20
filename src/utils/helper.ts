@@ -38,3 +38,15 @@ export const MONTH_NAMES = [
 ];
 export const MONTH_SHORT = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"];
 export const DAY_HEADERS = ["Lu", "Ma", "Me", "Je", "Ve", "Sa", "Di"];
+
+
+
+export const formatDate = () =>
+  new Date().toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+export const generateRef = () => Math.random().toString(36).slice(2, 8).toUpperCase();

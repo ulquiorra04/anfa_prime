@@ -7,38 +7,13 @@ import {
   Calendar,
   ChefHat,
   Salad,
-  UtensilsCrossed,
-  Cake,
   Home,
   Loader2,
   Send,
 } from "lucide-react";
-import type { MenuDto } from "@/models/menu";
-import type { MealDto } from "@/models/meal";
+import type { RecapState } from "@/models/recap";
+import { formatTime, generateRef, formatDate } from "@/utils/helper";
 
-interface RecapState {
-  username?: string;
-  meal?: MealDto;
-  menu?: MenuDto;
-}
-
-const formatDate = () =>
-  new Date().toLocaleDateString("fr-FR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-
-const formatTime = () =>
-  new Date().toLocaleTimeString("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-const generateRef = () => Math.random().toString(36).slice(2, 8).toUpperCase();
-
-/* ── Info row ─────────────────────────────────────────────────────────── */
 const InfoRow = ({
   icon: Icon,
   label,
@@ -71,7 +46,6 @@ const InfoRow = ({
   </div>
 );
 
-/* ── Course tag ───────────────────────────────────────────────────────── */
 const CourseTag = ({
   icon: Icon,
   label,
@@ -94,7 +68,6 @@ const CourseTag = ({
   </div>
 );
 
-/* ── Page ─────────────────────────────────────────────────────────────── */
 const RecapPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -106,8 +79,7 @@ const RecapPage = () => {
 
   const [ref] = useState<string>(generateRef);
   const [date] = useState<string>(formatDate);
-  const [time] = useState<string>(formatTime);
-
+  const [time] = useState<string>(() => formatTime(new Date().toISOString()));
   // ── Confirm order state ──
   const [confirmStatus, setConfirmStatus] = useState<
     "idle" | "loading" | "success" | "error"
@@ -147,7 +119,7 @@ const RecapPage = () => {
     } catch (err) {
       setConfirmStatus("error");
       setErrorMessage(
-        err instanceof Error ? err.message : "Something went wrong"
+        err instanceof Error ? err.message : "Something went wrong",
       );
     }
   };
@@ -175,7 +147,7 @@ const RecapPage = () => {
         {/* ── Recap card ── */}
         <article className="overflow-hidden rounded-2xl border border-[#ccdfe9] bg-white shadow-sm dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">
           {/* Top bar */}
-          <div className="h-1 w-full bg-gradient-to-r from-[#bbfff8] to-[#02c39a]" />
+          <div className="h-1 w-full bg-linear-to-r from-[#bbfff8] to-[#02c39a]" />
 
           {/* Order ref + time */}
           <div className="flex items-center justify-between px-7 pb-4 pt-6">
@@ -235,7 +207,7 @@ const RecapPage = () => {
           </div>
 
           {/* Course breakdown */}
-          {menu?.body && (
+          {menu?.body && menu.body.length > 0 && (
             <>
               <div className="mx-7 mt-5 h-px bg-[#dde8f0] dark:bg-[#1a2d3e]" />
               <div className="px-7 pb-6 pt-5">
@@ -246,24 +218,21 @@ const RecapPage = () => {
                   </p>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <CourseTag
-                    icon={Salad}
-                    label="Entrée"
-                    value={menu.body.entree}
-                    color="bg-[#e6fff9] text-[#02c39a] dark:bg-[#00271f] dark:text-[#46fdd5]"
-                  />
-                  <CourseTag
-                    icon={UtensilsCrossed}
-                    label="Plat"
-                    value={menu.body.plat}
-                    color="bg-[#e0f9f7] text-[#028090] dark:bg-[#001a1d] dark:text-[#29e3fc]"
-                  />
-                  <CourseTag
-                    icon={Cake}
-                    label="Dessert"
-                    value={menu.body.dessert}
-                    color="bg-[#e8f4fb] text-[#05668d] dark:bg-[#01151d] dark:text-[#2dbef7]"
-                  />
+                  {menu.body.map((item, idx) => (
+                    <CourseTag
+                      key={idx}
+                      icon={Salad}
+                      label={`Plat ${idx + 1}`}
+                      value={item}
+                      color={
+                        idx === 0
+                          ? "bg-[#e6fff9] text-[#02c39a] dark:bg-[#00271f] dark:text-[#46fdd5]"
+                          : idx === 1
+                            ? "bg-[#e0f9f7] text-[#028090] dark:bg-[#001a1d] dark:text-[#29e3fc]"
+                            : "bg-[#e8f4fb] text-[#05668d] dark:bg-[#01151d] dark:text-[#2dbef7]"
+                      }
+                    />
+                  ))}
                 </div>
               </div>
             </>
@@ -277,20 +246,30 @@ const RecapPage = () => {
           </div>
         )}
 
-        {/* ── Actions ── */}
+        
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          {/* Confirm Order button */}
+          <button
+            onClick={() => navigate("/")}
+            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#05668d] py-3 text-sm font-bold text-white shadow-lg shadow-[#05668d]/20 transition-all duration-200 hover:scale-[1.01] hover:bg-[#045372] active:scale-[0.99]"
+          >
+            <Home size={15} />
+            Back to home
+          </button>
+
           <button
             onClick={handleConfirm}
-            disabled={confirmStatus === "loading" || confirmStatus === "success"}
+            disabled={
+              confirmStatus === "loading" || confirmStatus === "success"
+            }
             className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white shadow-lg transition-all duration-200
-              ${confirmStatus === "success"
-                ? "bg-[#02c39a] shadow-[#02c39a]/20 cursor-default"
-                : confirmStatus === "loading"
-                ? "bg-[#2a7db5]/70 shadow-[#2a7db5]/10 cursor-not-allowed"
-                : "bg-[#2a7db5] shadow-[#2a7db5]/20 hover:scale-[1.01] hover:bg-[#1e6fa0] active:scale-[0.99]"
-              }
-            `}
+      ${
+        confirmStatus === "success"
+          ? "bg-[#02c39a] shadow-[#02c39a]/20 cursor-default"
+          : confirmStatus === "loading"
+            ? "bg-[#2a7db5]/70 shadow-[#2a7db5]/10 cursor-not-allowed"
+            : "bg-[#2a7db5] shadow-[#2a7db5]/20 hover:scale-[1.01] hover:bg-[#1e6fa0] active:scale-[0.99]"
+      }
+    `}
           >
             {confirmStatus === "loading" ? (
               <>
@@ -308,15 +287,6 @@ const RecapPage = () => {
                 Confirm Order
               </>
             )}
-          </button>
-
-          {/* Back to home */}
-          <button
-            onClick={() => navigate("/order")}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#05668d] py-3 text-sm font-bold text-white shadow-lg shadow-[#05668d]/20 transition-all duration-200 hover:scale-[1.01] hover:bg-[#045372] active:scale-[0.99]"
-          >
-            <Home size={15} />
-            Back to home
           </button>
         </div>
       </div>

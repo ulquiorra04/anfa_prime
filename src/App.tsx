@@ -4,6 +4,7 @@ import OrderPage from "./pages/OrderPage";
 import MealPage from "./pages/MealsPage";
 import MenuPage from "./pages/MenuPage";
 import RecapPage from "./pages/RecapPage";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -11,10 +12,11 @@ function App() {
       <Router>
        <Navbar />
       <Routes>
-        <Route path="/history" element={<OrderPage />} />
+        <Route path="/" element={<OrderPage />} />
         <Route path="/meal" element={<MealPage />} />
         <Route path="/meal/:id" element={<MenuPage />} />
         <Route path="/recap" element={<RecapPage />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       </Router>
     </div>

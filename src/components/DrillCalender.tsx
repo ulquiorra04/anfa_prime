@@ -199,7 +199,7 @@ export function DrillCalendar({
                     }}
                     style={{ WebkitTapHighlightColor: "transparent" }}
                     className={`
-                      relative flex min-h-[44px] flex-col items-center justify-center rounded-xl py-2.5 text-xs font-semibold
+                      relative flex min-h-11 flex-col items-center justify-center rounded-xl py-2.5 text-xs font-semibold
                       transition-all duration-150
                       ${
                         isPicked
@@ -246,7 +246,7 @@ export function DrillCalendar({
                     }}
                     style={{ WebkitTapHighlightColor: "transparent" }}
                     className={`
-                      relative flex min-h-[44px] flex-col items-center justify-center rounded-xl py-3 text-xs font-semibold
+                      relative flex min-h-11 flex-col items-center justify-center rounded-xl py-3 text-xs font-semibold
                       transition-all duration-150
                       ${
                         isPicked
@@ -294,7 +294,7 @@ export function DrillCalendar({
 
               <div className="grid grid-cols-7 gap-px">
                 {cells.map((d, i) => {
-                  if (!d) return <div key={i} className="min-h-[32px]" />;
+                  if (!d) return <div key={i} className="min-h-8" />;
                   const s = getDayStyle(d);
                   const active = hasOrderOnDay(d);
 
@@ -306,7 +306,7 @@ export function DrillCalendar({
                       onMouseLeave={() => mode === "range" && setHovered(null)}
                       style={{ WebkitTapHighlightColor: "transparent" }}
                       className={`
-                        relative flex min-h-[32px] flex-col items-center justify-center
+                        relative flex min-h-8 flex-col items-center justify-center
                         text-[0.7rem] font-semibold transition-all duration-100
                         ${s === "selected" ? "z-10 rounded-lg bg-[#2a7db5] text-white shadow-md" : ""}
                         ${s === "range-end-hover" ? "rounded-lg bg-[#2a7db5]/60 text-white" : ""}
@@ -330,7 +330,7 @@ export function DrillCalendar({
                       {d.getDate()}
                       {active && (
                         <span
-                          className={`absolute bottom-0.5 h-[3px] w-[3px] rounded-full ${
+                          className={`absolute bottom-0.5 h-0.75 w-0.75 rounded-full ${
                             s === "selected" ? "bg-white/70" : "bg-[#2a7db5] dark:bg-[#5b9ec9]"
                           }`}
                         />
