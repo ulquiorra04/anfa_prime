@@ -14,6 +14,10 @@ function OrderPage() {
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [loading, setLoading] = useState(true);
 
+
+  console.log(import.meta.env.VITE_API_URL);
+  console.log(import.meta.env.VITE_API_HISTORY);
+
 const formatDate = (dateString: string) => {
   if (!dateString) return dateString;
   
@@ -36,8 +40,9 @@ const formatDate = (dateString: string) => {
     const fetchSejour = async () => {
       try {
         setLoading(true);
-        const response = await fetch("data/sejour.json");
+        const response = await fetch(`${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_HISTORY}`);
         const sj = await response.json();
+        console.log(sj);
         if (sj) setOrders(sj.orders);
       } catch (error) {
         console.log(error);
