@@ -3,6 +3,7 @@ import { ThemeContext } from "@/context/ThemeContext";
 import type { sejourDto } from "@/models/sejour";
 import { Switch } from "./ui/switch";
 import { Sun, Moon, Stethoscope } from "lucide-react";
+import axios from "axios";
 
 export default function Navbar() {
   const theme = useContext(ThemeContext);
@@ -14,18 +15,24 @@ export default function Navbar() {
   useEffect(() => {
     const fetchSejour = async () => {
       try {
-        // const response = await fetch("data/sejour.json");
-         const response = await fetch(`${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_HISTORY}`);
-        const data = await response.json();
-        setSejour(data);
+        const response = await axios.get<sejourDto>(
+          `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_HISTORY}`
+        );
+        setSejour(response.data);
       } catch (error) {
-        console.log(error);
+        if (axios.isAxiosError(error)) {
+          console.error("Axios error:", error.message);
+          if (error.response) {
+            console.error("Response data:", error.response.data);
+          }
+        } else {
+          console.error("Unexpected error:", error);
+        }
       }
     };
     fetchSejour();
   }, []);
 
-  // Fonction pour formater le nom (première lettre en majuscule, reste en minuscules)
   const formatName = (name: string) => {
     if (!name) return "";
     
@@ -45,10 +52,9 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-[#dde8f0] bg-white/90 backdrop-blur-md dark:border-[#1e2f3d] dark:bg-[#0d1b26]/92 transition-colors duration-300 relative">
-      <div className="mx-auto flex h-[60px] max-w-7xl items-center justify-between gap-4 px-5 md:h-[68px] md:px-8">
+    <nav className="sticky top-0 z-50 w-full border-b border-[#dde8f0] bg-white/90 backdrop-blur-md dark:border-[#1e2f3d] dark:bg-[#0d1b26]/92 transition-colors duration-300">
+      <div className="mx-auto flex h-15 max-w-7xl items-center justify-between gap-4 px-5 md:h-17 md:px-8">
 
-        {/* ── Brand ── */}
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#bdd9ee] bg-[#eaf4fb] dark:border-[#1e3d52] dark:bg-[#0e2233]">
             <Stethoscope size={17} className="text-[#2a7db5]" strokeWidth={1.8} />
@@ -68,7 +74,6 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* ── Theme Toggle ── */}
         <div className="flex shrink-0 items-center gap-2 rounded-full border border-[#dde8f0] bg-[#f2f8fc] px-3 py-1.5 dark:border-[#1e2f3d] dark:bg-[#0e1e2b]">
           {darkMode ? (
             <Moon size={13} className="text-[#7a9baf]" strokeWidth={1.8} />
@@ -87,8 +92,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Bottom calm-blue accent line */}
-      <div className="absolute bottom-0 left-1/2 h-0.5 w-10 -translate-x-1/2 rounded-t bg-gradient-to-r from-[#64b6e0] to-[#2a7db5]" />
+      <div className="absolute bottom-0 left-1/2 h-0.5 w-10 -translate-x-1/2 rounded-t bg-linear-to-r from-[#64b6e0] to-[#2a7db5]" />
     </nav>
   );
 }

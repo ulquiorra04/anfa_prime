@@ -1,70 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion} from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Utensils, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Utensils, ChevronRight, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { ThemeContext } from '../context/ThemeContext';
-import type { MealsDto } from '@/models/meal';
-
-// Palette of accent colors to cycle through per card
-const CARD_ACCENTS = [
-  {
-    bar: 'from-[#2a7db5] to-[#56b4e9]',
-    iconBg: 'bg-[#eaf4fb] dark:bg-[#0d2233]',
-    iconBorder: 'border-[#b3d6ed] dark:border-[#1a3a52]',
-    iconColor: 'text-[#2a7db5]',
-  },
-  {
-    bar: 'from-[#e07b39] to-[#f5b87a]',
-    iconBg: 'bg-[#fdf3eb] dark:bg-[#2a1500]',
-    iconBorder: 'border-[#f0c89a] dark:border-[#4a2800]',
-    iconColor: 'text-[#e07b39]',
-  },
-  {
-    bar: 'from-[#3aaa7e] to-[#74d4ab]',
-    iconBg: 'bg-[#eaf7f2] dark:bg-[#001f12]',
-    iconBorder: 'border-[#a3dfc6] dark:border-[#0a3d24]',
-    iconColor: 'text-[#3aaa7e]',
-  },
-  {
-    bar: 'from-[#9b59b6] to-[#c39bd3]',
-    iconBg: 'bg-[#f5edfb] dark:bg-[#1a0028]',
-    iconBorder: 'border-[#d7b8eb] dark:border-[#3a0060]',
-    iconColor: 'text-[#9b59b6]',
-  },
-  {
-    bar: 'from-[#e74c3c] to-[#f1948a]',
-    iconBg: 'bg-[#fdf0ef] dark:bg-[#2a0000]',
-    iconBorder: 'border-[#f5b7b1] dark:border-[#5a0000]',
-    iconColor: 'text-[#e74c3c]',
-  },
-];
-
-const containerVariants = {
-  hidden: {},
-  show: {
-    transition: { staggerChildren: 0.1 },
-  },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 28 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, x: -10 },
-  show: (i: number) => ({
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.3, delay: i * 0.06, ease: 'easeOut' },
-  }),
-};
+import { CARD_ACCENTS, type MealsDto } from '@/models/meal';
+import { cardVariants, containerVariants } from '@/utils/motion';
 
 const MealsPage = () => {
   const [meals, setMeals] = useState<MealsDto[]>([]);
@@ -105,17 +46,26 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
     handleMealsClick(meal);
   }
 };
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f4f9fd] p-4 dark:bg-[#0a1520]">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+ if (error) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#f4f9fd] p-4 dark:bg-[#0a1520]">
+      <div className="flex max-w-md flex-col items-center rounded-2xl border border-[#f0c0c0] bg-white p-8 text-center shadow-sm dark:border-[#3d1515] dark:bg-[#0d1e2d]">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#f0c0c0] bg-[#fdf0f0] dark:border-[#3d1515] dark:bg-[#2a0d0d]">
+          <AlertTriangle size={30} className="text-[#b03a3a] dark:text-[#f08080]" strokeWidth={1.8} />
+        </div>
+        <h2 className="mb-1 text-lg font-bold text-[#0d2233] dark:text-[#ddeef7]">
+          Something went wrong
+        </h2>
+        <p className="mb-3 text-sm text-[#b03a3a] dark:text-[#f08080]">{error}</p>
+        <p className="text-xs font-medium text-[#5c85a0] dark:text-[#7a9baf]">
+          Please contact the{' '}
+          <span className="font-bold text-[#2a7db5]">direction</span>{' '}
+          if the problem persists.
+        </p>
       </div>
-    );
-  }
-
-  // Determine grid cols class based on count
+    </div>
+  );
+}
   const colsClass =
     meals.length === 1
       ? 'grid-cols-1 max-w-sm mx-auto'
@@ -133,7 +83,7 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
           initial={{ opacity: 0, x: -16 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.35, ease: 'easeOut' }}
-          onClick={() => navigate('/order')}
+          onClick={() => navigate('/')}
           className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#ccdfe9] bg-white px-4 py-2 text-sm font-medium text-[#5c85a0] transition-all duration-200 hover:-translate-x-0.5 hover:border-[#2a7db5]/40 hover:bg-[#eaf4fb] active:scale-95 dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#7a9baf] dark:hover:bg-[#0d1a26]"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
@@ -146,7 +96,7 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
           className="mx-auto mb-10 max-w-2xl text-center sm:mb-14"
           initial={{ opacity: 0, y: -18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
         >
           <div className="mb-3 inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#5c85a0] dark:text-[#7a9baf]">
             <Utensils size={13} className="text-[#2a7db5]" />
@@ -185,10 +135,7 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
                   variants={cardVariants}
                   className="group relative flex flex-col overflow-hidden rounded-2xl border border-[#ccdfe9] bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#2a7db5]/40 hover:shadow-xl dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:hover:border-[#2a7db5]/30 dark:hover:shadow-black/40"
                 >
-                  {/* Accent bar */}
                   <div className={`h-1 w-full bg-linear-to-r ${accent.bar}`} />
-
-                  {/* Card header */}
                   <div className="flex items-center gap-3 px-5 pb-4 pt-5">
                     <div
                       className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${accent.iconBg} ${accent.iconBorder} transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3`}
@@ -207,7 +154,6 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
 
                   <div className="mx-5 h-px bg-[#dde8f0] dark:bg-[#1a2d3e]" />
 
-                  {/* CTA button */}
                   <div className="flex flex-1 flex-col px-4 pb-5 pt-3 sm:px-5">
                     <motion.button
                       key={cat.id}
@@ -225,7 +171,7 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
                         group/item relative flex w-full cursor-pointer items-center justify-between
                         overflow-hidden rounded-xl border px-4 text-left
                         outline-none transition-colors duration-150
-                        min-h-[52px] py-3
+                        min-h-13 py-3
                         border-[#e2edf5] bg-[#f8fbfd]
                         text-sm font-medium text-[#0d2233]
                         dark:border-[#1a2d3e] dark:bg-[#0d1a26] dark:text-[#ddeef7]
@@ -239,7 +185,7 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
                     >
                       <span
                         className={`
-                          absolute left-0 top-0 h-full w-[3px] rounded-r-full
+                          absolute left-0 top-0 h-full w-0.75 rounded-r-full
                           bg-[#2a7db5] transition-transform duration-150 origin-left
                           ${pressedId === String(cat.id)? 'scale-x-100' : 'scale-x-0'}
                           group-hover/item:scale-x-100

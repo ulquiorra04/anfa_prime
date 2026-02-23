@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Utensils, ChefHat, Salad, CheckCircle } from "lucide-react";
 import { TAB_THEMES, type MenuDto } from "@/models/menu";
 import type { MealsDto } from "@/models/meal";
+import axios from "axios";
 
 const MenuPage = () => {
   const location = useLocation();
@@ -20,27 +21,29 @@ const MenuPage = () => {
     const load = async () => {
       try {
         setLoading(true);
-        //const sejourRes = await fetch("/data/sejour.json");
-        const sejourRes = await fetch(
+
+        const sejourRes = await axios.get(
           `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_MENU}`,
         );
-        const sejour = await sejourRes.json();
+        const sejour = sejourRes.data;
         if (sejour?.name) setUsername(sejour.name);
+
         if (menusFromState && menusFromState.length > 0) {
           setMenus(menusFromState);
           return;
         }
-        const menusRes = await fetch(
+
+        const menusRes = await axios.get<MenuDto[]>(
           `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_MENU}`,
         );
-        const data: MenuDto[] = await menusRes.json();
-        setMenus(data);
+        setMenus(menusRes.data);
       } catch (err) {
         console.error("Error fetching data:", err);
       } finally {
         setLoading(false);
       }
     };
+
     load();
   }, [menusFromState]);
 
@@ -125,7 +128,7 @@ const MenuPage = () => {
                         onClick={() => setActiveTab(idx)}
                         style={{ WebkitTapHighlightColor: "transparent" }}
                         className={`
-                          relative flex-1 min-w-[80px] min-h-[52px] rounded-xl px-3 py-2.5
+                          relative flex-1 min-w-20 min-h-13 rounded-xl px-3 py-2.5
                           text-sm font-semibold transition-all duration-200
                           outline-none focus-visible:ring-2 focus-visible:ring-[#2a7db5] focus-visible:ring-offset-2
                           dark:focus-visible:ring-offset-[#0a1520]
@@ -251,7 +254,7 @@ const LoadingSkeleton = () => (
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
-            className="h-[52px] flex-1 rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]"
+            className="h-13 flex-1 rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]"
           />
         ))}
       </div>
