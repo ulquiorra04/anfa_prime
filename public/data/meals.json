@@ -1,14 +1,18 @@
-[
-    {
-        "id": 1,
-        "name": "Petit Dejeuner"
-    },
-    {
-        "id": 2,
-        "name": "Dejeuner"
-    },
-    {
-        "id": 3,
-        "name": "Diner"
-    }
-]
+{
+    "status": 1,
+    "message": "Meals retrieved successfully",
+    "data": [
+        {
+            "id": 1,
+            "name": "Petit Dejeuner"
+        },
+        {
+            "id": 2,
+            "name": "Dejeuner"
+        },
+        {
+            "id": 3,
+            "name": "Diner"
+        }
+    ]
+}
