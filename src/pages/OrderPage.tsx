@@ -18,7 +18,6 @@ function OrderPage() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState<number>(0);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [sejour, setSejour] = useState<sejourDto | null>(null);
 
@@ -35,13 +34,10 @@ function OrderPage() {
         const reponse = await fetch("data/sejour.json");
         console.log(reponse);
         if (!reponse.ok) {
-          setStatus(0);
           setErrorMsg("Failed to fetch orders");
         } else {
           const sj: ResponseDto<sejourDto> = await reponse.json();
           console.log(sj);
-          setErrorMsg(sj.message);
-          setStatus(sj.status);
           setOrders(sj.data?.orders ?? []);
           setSejour(sj.data ?? null);
         }
@@ -198,7 +194,7 @@ function OrderPage() {
     </div>
   );
 
-  if (status === 0 || status === -1) {
+  if (errorMsg) {
     return <ErrorComponent msg={errorMsg} />;
   }
 
