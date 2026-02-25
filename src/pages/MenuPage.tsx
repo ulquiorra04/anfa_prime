@@ -17,10 +17,6 @@ const MenuPage = () => {
   const [activeMenu, setActiveMenu] = useState<MenuDto | null>(null);
   const [activeTab, setActiveTab] = useState(0);
 
-
-
-
-
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -29,7 +25,7 @@ const MenuPage = () => {
   const menusFromState = location.state?.menus as MenuDto[] | undefined;
 
   useEffect(() => {
-document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = i18n.language === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
 
@@ -39,11 +35,13 @@ document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
         setLoading(true);
         const response = await fetch(`../data/menus.json`);
         if (!response.ok) {
-          setError(`Failed to fetch meals: ${response.status} ${response.statusText}`);
+          setError(
+            `Failed to fetch meals: ${response.status} ${response.statusText}`,
+          );
         } else {
           const mns: ResponseDto<MenuDto[]> = await response.json();
           console.log(mns);
-          if(mns.status === 0 || mns.status === -1) {
+          if (mns.status === 0 || mns.status === -1) {
             setError(mns.message);
           } else {
             setMenus(mns.data ?? []);
@@ -78,23 +76,18 @@ document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
     });
   };
 
-  if(error) {
+  if (error) {
     return (
-        <>
-          <Navbar name={ patient ?? "No Patient" } />
-          <ErrorComponent msg={error} />
-        </>
+      <>
+        <Navbar name={patient ?? "No Patient"} />
+        <ErrorComponent msg={error} />
+      </>
     );
   }
-  
-
-
-
-
 
   return (
     <>
-      <Navbar name={ patient ?? "No Patient" } />
+      <Navbar name={patient ?? "No Patient"} />
       <div className="min-h-screen bg-[#f4f9fd] px-5 py-10 transition-colors duration-300 dark:bg-[#0a1520] sm:py-14">
         <div className="mx-auto max-w-7xl">
           <motion.button
@@ -108,8 +101,8 @@ document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
             <ArrowLeft size={15} />
             {t("back_to_meals")}
           </motion.button>
-  
-        <motion.header
+
+          <motion.header
             className="mx-auto mb-10 max-w-2xl text-center sm:mb-14"
             initial={{ opacity: 0, y: -18 }}
             animate={{ opacity: 1, y: 0 }}
@@ -120,7 +113,8 @@ document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
               {t("todays_menu")}
             </div>
             <h1 className="text-2xl font-bold leading-tight text-[#0d2233] dark:text-[#ddeef7] sm:text-3xl">
-              {t("choose_your")} <em className="italic text-[#2a7db5]">{t("menu")}</em>
+              {t("choose_your")}{" "}
+              <em className="italic text-[#2a7db5]">{t("menu")}</em>
             </h1>
             <div className="mx-auto mt-4 h-0.5 w-12 rounded bg-[#2a7db5]" />
           </motion.header>
@@ -154,7 +148,10 @@ document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
                       return (
                         <button
                           key={menu.id}
-                          onClick={() => {setActiveTab(idx); setActiveMenu(menu)}}
+                          onClick={() => {
+                            setActiveTab(idx);
+                            setActiveMenu(menu);
+                          }}
                           style={{ WebkitTapHighlightColor: "transparent" }}
                           className={`
                             relative flex-1 min-w-20 min-h-13 rounded-xl px-3 py-2.5
@@ -183,13 +180,13 @@ document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
                   </div>
                 </div>
 
-              {/* Section label */}
-              <div className="mb-3 flex items-center gap-2">
-                <ChefHat size={13} className="text-[#7a9baf]" />
-                <p className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-[#7a9baf]">
-                  {t("todays_selection")}
-                </p>
-              </div>
+                {/* Section label */}
+                <div className="mb-3 flex items-center gap-2">
+                  <ChefHat size={13} className="text-[#7a9baf]" />
+                  <p className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-[#7a9baf]">
+                    {t("todays_selection")}
+                  </p>
+                </div>
 
                 {/* Course rows */}
                 <AnimatePresence mode="wait">
@@ -218,22 +215,22 @@ document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
                   )}
                 </AnimatePresence>
 
-              {/* Order button */}
-              <motion.button
-                onClick={handleOrder}
-                whileHover={{ scale: 1.015 }}
-                whileTap={{ scale: 0.985 }}
-                className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-lg transition-colors duration-200 ${theme.btn}`}
-                style={{ WebkitTapHighlightColor: "transparent" }}
-              >
-                <CheckCircle size={16} strokeWidth={2.2} />
-                {t("order_menu", { name: activeMenu?.name })}
-              </motion.button>
-            </div>
-          </motion.article>
-        )}
+                {/* Order button */}
+                <motion.button
+                  onClick={handleOrder}
+                  whileHover={{ scale: 1.015 }}
+                  whileTap={{ scale: 0.985 }}
+                  className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-lg transition-colors duration-200 ${theme.btn}`}
+                  style={{ WebkitTapHighlightColor: "transparent" }}
+                >
+                  <CheckCircle size={16} strokeWidth={2.2} />
+                  {t("order_menu", { name: activeMenu?.name })}
+                </motion.button>
+              </div>
+            </motion.article>
+          )}
+        </div>
       </div>
-    </div>
     </>
   );
 };
@@ -250,14 +247,18 @@ const CourseRow = ({
   bar: string;
 }) => (
   <div className="flex items-start gap-4 rounded-xl border border-[#ccdfe9] bg-[#f4f9fd] px-4 py-3.5 dark:border-[#1a2d3e] dark:bg-[#0a1520]">
-    <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${bar}`}>
+    <div
+      className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${bar}`}
+    >
       <Icon size={15} strokeWidth={1.8} />
     </div>
     <div className="min-w-0">
       <p className="text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-[#7a9baf] dark:text-[#5c85a0]">
         {label}
       </p>
-      <p className="mt-0.5 text-sm font-medium text-[#0d2233] dark:text-[#ddeef7]">{value}</p>
+      <p className="mt-0.5 text-sm font-medium text-[#0d2233] dark:text-[#ddeef7]">
+        {value}
+      </p>
     </div>
   </div>
 );
@@ -278,19 +279,31 @@ const LoadingSkeleton = () => (
     <div className="space-y-3 px-7 pb-7 pt-5">
       <div className="flex gap-2">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-13 flex-1 rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]" />
+          <div
+            key={i}
+            className="h-13 flex-1 rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]"
+          />
         ))}
       </div>
       <div className="h-10 w-full rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]" />
       {[...Array(3)].map((_, i) => (
-        <div key={i} className="h-14 w-full rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]" />
+        <div
+          key={i}
+          className="h-14 w-full rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]"
+        />
       ))}
       <div className="h-12 w-full rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]" />
     </div>
   </div>
 );
 
-const NotFound = ({ onBack, t }: { onBack: () => void; t: (key: string) => string }) => (
+const NotFound = ({
+  onBack,
+  t,
+}: {
+  onBack: () => void;
+  t: (key: string) => string;
+}) => (
   <div className="flex flex-col items-center justify-center py-24 text-center">
     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#ccdfe9] bg-white dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">
       <Utensils size={28} className="text-[#7a9baf]" strokeWidth={1.5} />

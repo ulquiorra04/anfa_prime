@@ -13,7 +13,7 @@ import ErrorComponent from "@/components/error";
 import type { ResponseDto } from "@/models/response";
 import Navbar from "@/components/Navbar";
 import type { sejourDto } from "@/models/sejour";
-import { useTranslation } from "react-i18next"; // ✅ Fixed: was wrongly `useTransition` from React
+import { useTranslation } from "react-i18next"; 
 
 type Mode = "single" | "range";
 
@@ -32,7 +32,7 @@ function OrderPage() {
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
 
   useEffect(() => {
-    document.documentElement.dir = i18n.dir();
+document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
 
