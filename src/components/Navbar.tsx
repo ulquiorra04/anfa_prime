@@ -1,36 +1,40 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
 import { Switch } from "./ui/switch";
-import { Sun, Moon, Stethoscope } from "lucide-react";
+import { Sun, Moon, Stethoscope, Globe } from "lucide-react"; 
+import { useTranslation } from "react-i18next"; 
 
 interface NavbarProps {
   name: string;
 }
 
-export default function Navbar(
-  props: NavbarProps
-) {
+
+export default function Navbar(props:NavbarProps) {
+
+  const { t, i18n } = useTranslation(); 
   const theme = useContext(ThemeContext);
   if (!theme) throw new Error("ThemeContext undefined");
 
   const { darkMode, toggleTheme } = theme;
 
+  useEffect(() => {
+    document.documentElement.dir = i18n.dir();
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
+
+
   const formatName = (name: string) => {
     if (!name) return "";
-    
     return name
       .split(' ')
-      .map(word => {
-        if (word.length === 0) return word;
-        return word
-          .split('-')
-          .map(part => {
-            if (part.length === 0) return part;
-            return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
-          })
-          .join('-');
-      })
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
+  };
+
+  const toggleLanguage = () => {
+    const langs = ['en', 'fr'];
+    const nextLang = langs[(langs.indexOf(i18n.language) + 1) % langs.length];
+    i18n.changeLanguage(nextLang);
   };
 
   return (
@@ -44,29 +48,36 @@ export default function Navbar(
 
           <div className="flex min-w-0 flex-col">
             <span className="hidden text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-[#7a9baf] sm:block">
-              Welcome back
+              {t('welcome_back')}
             </span>
             <span className="truncate text-lg font-bold leading-tight text-[#0d2233] dark:text-[#ddeef7] sm:text-xl md:text-2xl ">
+
               <em className="not-italic text-[#2a7db5]">{formatName(props.name)}</em>
             </span>
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 rounded-full border border-[#dde8f0] bg-[#f2f8fc] px-3 py-1.5 dark:border-[#1e2f3d] dark:bg-[#0e1e2b]">
-          {darkMode ? (
-            <Moon size={13} className="text-[#7a9baf]" strokeWidth={1.8} />
-          ) : (
-            <Sun size={13} className="text-[#2a7db5]" strokeWidth={1.8} />
-          )}
-          <span className="hidden text-xs font-medium text-[#5c85a0] dark:text-[#7a9baf] sm:block">
-            {darkMode ? "Night" : "Day"}
-          </span>
-          <Switch
-            checked={darkMode}
-            onCheckedChange={toggleTheme}
-            className="data-[state=checked]:bg-[#2a7db5] data-[state=unchecked]:bg-[#b8d4e6] dark:data-[state=unchecked]:bg-[#1e3248]"
-            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-          />
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={toggleLanguage}
+            className="flex items-center gap-2 rounded-full border border-[#dde8f0] bg-[#f2f8fc] px-3 py-1.5 dark:border-[#1e2f3d] dark:bg-[#0e1e2b] hover:bg-[#e6f0f7] transition-colors"
+          >
+            <Globe size={13} className="text-[#2a7db5]" />
+            <span className="text-xs font-bold uppercase text-[#5c85a0]">{i18n.language}</span>
+          </button>
+
+          {/* Theme Switcher */}
+          <div className="flex shrink-0 items-center gap-2 rounded-full border border-[#dde8f0] bg-[#f2f8fc] px-3 py-1.5 dark:border-[#1e2f3d] dark:bg-[#0e1e2b]">
+            {darkMode ? <Moon size={13} className="text-[#7a9baf]" /> : <Sun size={13} className="text-[#2a7db5]" />}
+            <span className="hidden text-xs font-medium text-[#5c85a0] dark:text-[#7a9baf] sm:block">
+              {darkMode ? t('night') : t('day')}
+            </span>
+            <Switch
+              checked={darkMode}
+              onCheckedChange={toggleTheme}
+              className="data-[state=checked]:bg-[#2a7db5] data-[state=unchecked]:bg-[#b8d4e6] dark:data-[state=unchecked]:bg-[#1e3248]"
+            />
+          </div>
         </div>
       </div>
 

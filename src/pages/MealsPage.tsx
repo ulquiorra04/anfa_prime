@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion} from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Utensils, ChevronRight, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Utensils, ChevronRight, ArrowLeft } from 'lucide-react';
 import { ThemeContext } from '../context/ThemeContext';
 import { CARD_ACCENTS, type MealsDto } from '@/models/meal';
 import { cardVariants, containerVariants } from '@/utils/motion';
 import ErrorComponent from '@/components/error';
 import Navbar from '@/components/Navbar';
 import type { ResponseDto } from '@/models/response';
+import { useTranslation } from 'react-i18next';
 
 const MealsPage = () => {
+  const { t, i18n } = useTranslation();
   const [meals, setMeals] = useState<MealsDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +23,11 @@ const MealsPage = () => {
   const themeContext = useContext(ThemeContext);
 
   if (!themeContext) throw new Error('MealsPage must be used within a ThemeProvider');
+
+  useEffect(() => {
+document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
 
   useEffect(() => {
     const fetchmeals = async () => {
@@ -49,9 +56,9 @@ const MealsPage = () => {
     fetchmeals();
   }, []);
 
-const handleMealsClick = (meal: MealsDto) => {
-  navigate(`/meal/${meal.id}`, { state: { meal } });
-};
+  const handleMealsClick = (meal: MealsDto) => {
+    navigate(`/meal/${meal.id}`, { state: { meal } });
+  };
 
 const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
   if (e.key === 'Enter' || e.key === ' ') {
@@ -91,7 +98,7 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
             style={{ WebkitTapHighlightColor: 'transparent' }}
           >
             <ArrowLeft size={15} />
-            Back to orders
+            {t('back_to_orders')}
           </motion.button>
 
           {/* Header */}
@@ -103,11 +110,11 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
           >
             <div className="mb-3 inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#5c85a0] dark:text-[#7a9baf]">
               <Utensils size={13} className="text-[#2a7db5]" />
-              Today's Menu
+              {t('todays_menu')}
             </div>
             <h1 className="mb-3 text-[clamp(2.2rem,6vw,3.8rem)] font-bold leading-[1.1] text-[#0d2233] dark:text-[#ddeef7]">
-              Choose your{' '}
-              <em className="italic text-[#2a7db5]">meal</em>
+              {t('choose_your')}{' '}
+              <em className="italic text-[#2a7db5]">{t('meal')}</em>
             </h1>
             <div className="mx-auto mt-4 h-0.5 w-12 rounded bg-[#2a7db5]" />
           </motion.header>
@@ -161,7 +168,7 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
                       <motion.button
                         key={cat.id}
                         type="button"
-                        aria-label={`Select ${cat.name}`}
+                        aria-label={`${t('select')} ${cat.name}`}
                         onClick={() => handleMealsClick(cat)}
                         onTouchStart={() => setPressedId(String(cat.id))}
                         onTouchEnd={() => setPressedId(null)}
@@ -190,11 +197,13 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
                           className={`
                             absolute left-0 top-0 h-full w-0.75 rounded-r-full
                             bg-[#2a7db5] transition-transform duration-150 origin-left
-                            ${pressedId === String(cat.id)? 'scale-x-100' : 'scale-x-0'}
+                            ${pressedId === String(cat.id) ? 'scale-x-100' : 'scale-x-0'}
                             group-hover/item:scale-x-100
                           `}
                         />
-                        <span className="truncate pl-1 pr-3">View {cat.name} meals</span>
+                        <span className="truncate pl-1 pr-3">
+                        {t('view_meals', { name: cat.name })}
+                      </span>
                         <ChevronRight
                           size={18}
                           className="

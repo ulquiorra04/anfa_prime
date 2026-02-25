@@ -12,7 +12,7 @@ import {
   Send,
 } from "lucide-react";
 import type { RecapState } from "@/models/recap";
-import { formatTime, generateRef, formatDate } from "@/utils/helper";
+import {  generateRef, formatDate } from "@/utils/helper";
 import Navbar from "@/components/Navbar";
 
 const InfoRow = ({
@@ -80,7 +80,7 @@ const RecapPage = () => {
 
   const [ref] = useState<string>(generateRef);
   const [date] = useState<string>(formatDate);
-  const [time] = useState<string>(() => formatTime(new Date().toISOString()));
+  //const [time] = useState<string>(() => formatTime(new Date().toISOString()));
   // ── Confirm order state ──
   const [confirmStatus, setConfirmStatus] = useState<
     "idle" | "loading" | "success" | "error"

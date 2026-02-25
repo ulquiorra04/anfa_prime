@@ -5,6 +5,7 @@ import MealPage from "./pages/MealsPage";
 import MenuPage from "./pages/MenuPage";
 import RecapPage from "./pages/RecapPage";
 import NotFound from "./pages/NotFound";
+import ('../src/i18n/i18n');
 
 function App() {
   return (
