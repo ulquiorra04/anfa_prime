@@ -1,37 +1,19 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
-import type { sejourDto } from "@/models/sejour";
 import { Switch } from "./ui/switch";
 import { Sun, Moon, Stethoscope } from "lucide-react";
-import axios from "axios";
 
-export default function Navbar() {
+interface NavbarProps {
+  name: string;
+}
+
+export default function Navbar(
+  props: NavbarProps
+) {
   const theme = useContext(ThemeContext);
   if (!theme) throw new Error("ThemeContext undefined");
 
-  const [sejour, setSejour] = useState<sejourDto | null>(null);
   const { darkMode, toggleTheme } = theme;
-
-  useEffect(() => {
-    const fetchSejour = async () => {
-      try {
-        const response = await axios.get<sejourDto>(
-          `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_HISTORY}`
-        );
-        setSejour(response.data);
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          console.error("Axios error:", error.message);
-          if (error.response) {
-            console.error("Response data:", error.response.data);
-          }
-        } else {
-          console.error("Unexpected error:", error);
-        }
-      }
-    };
-    fetchSejour();
-  }, []);
 
   const formatName = (name: string) => {
     if (!name) return "";
@@ -65,11 +47,7 @@ export default function Navbar() {
               Welcome back
             </span>
             <span className="truncate text-lg font-bold leading-tight text-[#0d2233] dark:text-[#ddeef7] sm:text-xl md:text-2xl ">
-              {sejour?.name ? (
-                <em className="not-italic text-[#2a7db5]">{formatName(sejour.name)}</em>
-              ) : (
-                "Your Menu"
-              )}
+              <em className="not-italic text-[#2a7db5]">{formatName(props.name)}</em>
             </span>
           </div>
         </div>
