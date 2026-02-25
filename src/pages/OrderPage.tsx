@@ -2,16 +2,20 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { OrderDto } from "../models/order";
-import {Coffee,CheckCircle,Clock,XCircle,Utensils,Plus,ClipboardList,
-        ChevronRight,Sparkles,Soup,Pizza,  CalendarDays,  X,} from "lucide-react";
+import {
+  Coffee, CheckCircle, Clock, XCircle, Utensils, Plus, ClipboardList,
+  ChevronRight, Sparkles, Soup, Pizza, CalendarDays, X,
+} from "lucide-react";
 import { DrillCalendar } from "@/components/DrillCalender";
 import { isSameDay, toDate } from "date-fns";
-import {formatDayLabel,formatDayShort,formatTime,isInRange,} from "@/utils/helper";
+import { formatDayLabel, formatDayShort, formatTime, isInRange } from "@/utils/helper";
+import { useTranslation } from "react-i18next"; // ✅ Fixed: was wrongly `useTransition` from React
 
 type Mode = "single" | "range";
 
 function OrderPage() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation(); // ✅ Fixed
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [calOpen, setCalOpen] = useState(false);
@@ -21,13 +25,20 @@ function OrderPage() {
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
 
   useEffect(() => {
+    document.documentElement.dir = i18n.dir();
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
+
+  useEffect(() => {
     (async () => {
       try {
         setLoading(true);
-        const sj = await (await fetch("data/sejour.json")).json();
-        if (sj) setOrders(sj.orders);
+        const response = await fetch("data/sejour.json");
+        if (!response.ok) throw new Error("Failed to fetch");
+        const data = await response.json();
+        if (data && data.orders) setOrders(data.orders);
       } catch (e) {
-        console.log(e);
+        console.error("Error loading orders:", e);
       } finally {
         setLoading(false);
       }
@@ -35,10 +46,7 @@ function OrderPage() {
   }, []);
 
   const activeDates = useMemo(
-    () =>
-      orders
-        .map((o) => toDate(o.created_at))
-        .filter((d) => !isNaN(d.getTime())),
+    () => orders.map((o) => toDate(o.created_at)).filter((d) => !isNaN(d.getTime())),
     [orders],
   );
 
@@ -49,24 +57,20 @@ function OrderPage() {
     if (calMode === "range" && rangeStart && rangeEnd)
       return `${formatDayShort(rangeStart)} → ${formatDayShort(rangeEnd)}`;
     if (calMode === "range" && rangeStart)
-      return `Depuis ${formatDayShort(rangeStart)}`;
+      return `${t("since")} ${formatDayShort(rangeStart)}`;
     return null;
-  }, [calMode, selectedDay, rangeStart, rangeEnd]);
+  }, [calMode, selectedDay, rangeStart, rangeEnd, t]);
 
   const grouped = useMemo(() => {
     const today = new Date();
     let filtered: typeof orders;
 
     if (calMode === "single" && selectedDay) {
-      filtered = orders.filter((o) =>
-        isSameDay(toDate(o.created_at), selectedDay),
-      );
+      filtered = orders.filter((o) => isSameDay(toDate(o.created_at), selectedDay));
     } else if (calMode === "range" && rangeStart && rangeEnd) {
       const from = rangeStart <= rangeEnd ? rangeStart : rangeEnd;
       const to = rangeStart <= rangeEnd ? rangeEnd : rangeStart;
-      filtered = orders.filter((o) =>
-        isInRange(toDate(o.created_at), from, to),
-      );
+      filtered = orders.filter((o) => isInRange(toDate(o.created_at), from, to));
     } else {
       filtered = orders.filter((o) => isSameDay(toDate(o.created_at), today));
     }
@@ -84,8 +88,7 @@ function OrderPage() {
     return Array.from(map.entries())
       .sort(([a], [b]) => b.localeCompare(a))
       .map(([key, dayOrders]) => {
-        const d =
-          key === "unknown" ? new Date() : toDate(dayOrders[0].created_at);
+        const d = key === "unknown" ? new Date() : toDate(dayOrders[0].created_at);
         return { label: formatDayLabel(d), orders: dayOrders };
       });
   }, [orders, calMode, selectedDay, rangeStart, rangeEnd]);
@@ -96,71 +99,40 @@ function OrderPage() {
     setRangeEnd(null);
   };
 
-  const getStatusConfig = (status: number) =>
-    (
-      ({
-        1: {
-          classes:
-            "bg-[#eaf7f1] text-[#1a8c5b] border-[#b3e2cf] dark:bg-[#0a2318] dark:text-[#4dd9a0] dark:border-[#0f3d28]",
-          icon: <CheckCircle className="w-3 h-3" />,
-          label: "Livré",
-        },
-        0: {
-          classes:
-            "bg-[#eaf4fb] text-[#1e6fa0] border-[#b3d6ed] dark:bg-[#0a1e2d] dark:text-[#64b6e0] dark:border-[#0f2e44]",
-          icon: <Clock className="w-3 h-3" />,
-          label: "En route",
-        },
-        2: {
-          classes:
-            "bg-[#fdf0f0] text-[#b03a3a] border-[#f0c0c0] dark:bg-[#2a0d0d] dark:text-[#f08080] dark:border-[#3d1515]",
-          icon: <XCircle className="w-3 h-3" />,
-          label: "Annulé",
-        },
-      }) as Record<
-        number,
-        { classes: string; icon: React.ReactNode; label: string }
-      >
-    )[status] ?? {
-      classes:
-        "bg-[#f2f8fc] text-[#5c85a0] border-[#ccdfe9] dark:bg-[#0e1e2d] dark:text-[#7a9baf] dark:border-[#1a2d3e]",
-      icon: <XCircle className="w-3 h-3" />,
-      label: "Inconnu",
+  const getStatusConfig = (status: number) => {
+    const configs: Record<number, { classes: string; icon: React.ReactNode; label: string }> = {
+      1: {
+        classes: "bg-[#eaf7f1] text-[#1a8c5b] border-[#b3e2cf] dark:bg-[#0a2318] dark:text-[#4dd9a0] dark:border-[#0f3d28]",
+        icon: <CheckCircle className="w-3 h-3" />,
+        label: t("status_delivered"),
+      },
+      0: {
+        classes: "bg-[#eaf4fb] text-[#1e6fa0] border-[#b3d6ed] dark:bg-[#0a1e2d] dark:text-[#64b6e0] dark:border-[#0f2e44]",
+        icon: <Clock className="w-3 h-3" />,
+        label: t("status_on_way"),
+      },
+      2: {
+        classes: "bg-[#fdf0f0] text-[#b03a3a] border-[#f0c0c0] dark:bg-[#2a0d0d] dark:text-[#f08080] dark:border-[#3d1515]",
+        icon: <XCircle className="w-3 h-3" />,
+        label: t("status_cancelled"),
+      },
     };
+    return configs[status] ?? {
+      classes: "bg-[#f2f8fc] text-[#5c85a0] border-[#ccdfe9] dark:bg-[#0e1e2d] dark:text-[#7a9baf] dark:border-[#1a2d3e]",
+      icon: <XCircle className="w-3 h-3" />,
+      label: t("status_unknown"),
+    };
+  };
 
   const getMealMeta = (mealName: string) => {
     const l = mealName.toLowerCase();
-    if (l.includes("Petit déjeuner") || l.includes("breakfast"))
-      return {
-        icon: <Coffee className="w-4 h-4" />,
-        color:
-          "bg-[#e6fff9] text-[#02c39a] dark:bg-[#00271f] dark:text-[#46fdd5]",
-        bar: "from-[#bbfff8] to-[#02c39a]",
-        label: "Petit-déjeuner",
-      };
-    if (l.includes("Déjeuner") || l.includes("lunch"))
-      return {
-        icon: <Soup className="w-4 h-4" />,
-        color:
-          "bg-[#e0f9f7] text-[#028090] dark:bg-[#001a1d] dark:text-[#29e3fc]",
-        bar: "from-[#00a896] to-[#028090]",
-        label: "Déjeuner",
-      };
+    if (l.includes("petit déjeuner") || l.includes("breakfast"))
+      return { icon: <Coffee className="w-4 h-4" />, color: "bg-[#e6fff9] text-[#02c39a] dark:bg-[#00271f] dark:text-[#46fdd5]", bar: "from-[#bbfff8] to-[#02c39a]", label: t("meal_breakfast") };
+    if (l.includes("déjeuner") || l.includes("lunch"))
+      return { icon: <Soup className="w-4 h-4" />, color: "bg-[#e0f9f7] text-[#028090] dark:bg-[#001a1d] dark:text-[#29e3fc]", bar: "from-[#00a896] to-[#028090]", label: t("meal_lunch") };
     if (l.includes("dîner") || l.includes("dinner"))
-      return {
-        icon: <Pizza className="w-4 h-4" />,
-        color:
-          "bg-[#e8f4fb] text-[#05668d] dark:bg-[#01151d] dark:text-[#2dbef7]",
-        bar: "from-[#05668d] to-[#f0f3bd]",
-        label: "Dîner",
-      };
-    return {
-      icon: <Soup className="w-4 h-4" />,
-      color:
-        "bg-[#e0f9f7] text-[#028090] dark:bg-[#001a1d] dark:text-[#29e3fc]",
-      bar: "from-[#2dbef7] to-[#05668d]",
-      label: "Repas",
-    };
+      return { icon: <Pizza className="w-4 h-4" />, color: "bg-[#e8f4fb] text-[#05668d] dark:bg-[#01151d] dark:text-[#2dbef7]", bar: "from-[#05668d] to-[#f0f3bd]", label: t("meal_dinner") };
+    return { icon: <Soup className="w-4 h-4" />, color: "bg-[#e0f9f7] text-[#028090] dark:bg-[#001a1d] dark:text-[#29e3fc]", bar: "from-[#2dbef7] to-[#05668d]", label: t("meal_generic") };
   };
 
   const SkeletonCard = () => (
@@ -191,10 +163,10 @@ function OrderPage() {
             <div>
               <div className="mb-3 inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#5c85a0] dark:text-[#7a9baf]">
                 <ClipboardList size={13} className="text-[#2a7db5]" />
-                Vos commandes
+                {t("your_orders")}
               </div>
               <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.1] text-[#0d2233] dark:text-[#ddeef7]">
-                Meal <em className="italic text-[#2a7db5]">History</em>
+                {t("meal")} <em className="italic text-[#2a7db5]">{t("history")}</em>
               </h1>
               <div className="mt-4 h-0.5 w-12 rounded bg-[#2a7db5]" />
             </div>
@@ -209,19 +181,14 @@ function OrderPage() {
                     className={`
                       flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-semibold
                       transition-all duration-200 max-w-45
-                      ${
-                        calOpen || hasFilter
-                          ? "border-[#2a7db5] bg-[#2a7db5] text-white shadow-md"
-                          : "border-[#ccdfe9] bg-white text-[#5c85a0] hover:border-[#2a7db5]/40 hover:bg-[#eaf4fb] hover:text-[#2a7db5] dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#7a9baf]"
+                      ${calOpen || hasFilter
+                        ? "border-[#2a7db5] bg-[#2a7db5] text-white shadow-md"
+                        : "border-[#ccdfe9] bg-white text-[#5c85a0] hover:border-[#2a7db5]/40 hover:bg-[#eaf4fb] hover:text-[#2a7db5] dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#7a9baf]"
                       }
                     `}
                   >
                     <CalendarDays size={14} className="shrink-0" />
-                    <span className="truncate">
-                      {filterLabel ?? (
-                        <span className="hidden sm:inline">Filtrer</span>
-                      )}
-                    </span>
+                    <span className="truncate">{filterLabel ?? t("filter")}</span>
                     {hasFilter && (
                       <span
                         role="button"
@@ -263,7 +230,7 @@ function OrderPage() {
                               className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all duration-150
                                 ${calMode === m ? "bg-[#2a7db5] text-white shadow-sm" : "text-[#7a9baf] hover:text-[#5c85a0] dark:hover:text-[#ddeef7]"}`}
                             >
-                              {m === "single" ? "Jour" : "Période"}
+                              {m === "single" ? t("cal_day") : t("cal_period")}
                             </button>
                           ))}
                         </div>
@@ -295,7 +262,7 @@ function OrderPage() {
                   style={{ WebkitTapHighlightColor: "transparent" }}
                 >
                   <Plus size={16} strokeWidth={2.5} />
-                  New order
+                  {t("new_order")}
                 </motion.button>
               )}
             </div>
@@ -303,10 +270,7 @@ function OrderPage() {
 
           {/* Click-outside overlay */}
           {calOpen && (
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setCalOpen(false)}
-            />
+            <div className="fixed inset-0 z-40" onClick={() => setCalOpen(false)} />
           )}
         </motion.header>
 
@@ -319,18 +283,13 @@ function OrderPage() {
             className="flex flex-col items-center justify-center py-16 text-center"
           >
             <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-2xl border border-[#ccdfe9] bg-white shadow-sm dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">
-              <Utensils
-                size={32}
-                className="text-[#2a7db5]"
-                strokeWidth={1.5}
-              />
+              <Utensils size={32} className="text-[#2a7db5]" strokeWidth={1.5} />
             </div>
             <p className="text-2xl font-bold text-[#0d2233] dark:text-[#ddeef7]">
-              No orders yet
+              {t("no_orders_yet")}
             </p>
             <p className="mt-2 max-w-xs text-sm font-light text-[#5c85a0] dark:text-[#7a9baf]">
-              Browse today's menu and place your first meal order — it only
-              takes a moment.
+              {t("no_orders_desc")}
             </p>
             <motion.button
               onClick={() => navigate("/meal")}
@@ -340,7 +299,7 @@ function OrderPage() {
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
               <Sparkles size={15} />
-              Browse today's menu
+              {t("browse_menu")}
               <ChevronRight size={15} />
             </motion.button>
           </motion.div>
@@ -363,19 +322,13 @@ function OrderPage() {
                   className="flex flex-col items-center justify-center py-16 text-center"
                 >
                   <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-2xl border border-[#ccdfe9] bg-white shadow-sm dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">
-                    <Utensils
-                      size={32}
-                      className="text-[#2a7db5]"
-                      strokeWidth={1.5}
-                    />
+                    <Utensils size={32} className="text-[#2a7db5]" strokeWidth={1.5} />
                   </div>
                   <p className="text-2xl font-bold text-[#0d2233] dark:text-[#ddeef7]">
-                    {hasFilter ? "No orders found" : "No orders yet"}
+                    {hasFilter ? t("no_orders_filtered") : t("no_orders_yet")}
                   </p>
                   <p className="mt-2 max-w-xs text-sm font-light text-[#5c85a0] dark:text-[#7a9baf]">
-                    {hasFilter
-                      ? "No orders found for this period."
-                      : "Browse today's menu and place your first meal order — it only takes a moment."}
+                    {hasFilter ? t("no_orders_filtered_desc") : t("no_orders_desc")}
                   </p>
                   {!hasFilter && (
                     <motion.button
@@ -386,7 +339,7 @@ function OrderPage() {
                       style={{ WebkitTapHighlightColor: "transparent" }}
                     >
                       <Sparkles size={15} />
-                      Browse today's menu
+                      {t("browse_menu")}
                       <ChevronRight size={15} />
                     </motion.button>
                   )}
@@ -410,11 +363,7 @@ function OrderPage() {
                   key={label}
                   variants={{
                     hidden: { opacity: 0, y: 14 },
-                    show: {
-                      opacity: 1,
-                      y: 0,
-                      transition: { duration: 0.38, ease: [0.22, 1, 0.36, 1] },
-                    },
+                    show: { opacity: 1, y: 0, transition: { duration: 0.38, ease: [0.22, 1, 0.36, 1] } },
                   }}
                 >
                   <div className="mb-2.5 flex items-center gap-3">
@@ -423,7 +372,7 @@ function OrderPage() {
                     </span>
                     <div className="h-px flex-1 bg-[#dde8f0] dark:bg-[#1a2d3e]" />
                     <span className="text-[0.6rem] font-semibold text-[#7a9baf]">
-                      {dayOrders.length} repas
+                      {dayOrders.length} {t("meals_count")}
                     </span>
                   </div>
 
@@ -436,9 +385,7 @@ function OrderPage() {
                           key={order.id}
                           className="group overflow-hidden rounded-2xl border border-[#ccdfe9] bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2a7db5]/40 hover:shadow-lg dark:border-[#1a2d3e] dark:bg-[#0d1e2d]"
                         >
-                          <div
-                            className={`h-0.5 w-full bg-linear-to-r ${meal.bar}`}
-                          />
+                          <div className={`h-0.5 w-full bg-linear-to-r ${meal.bar}`} />
                           <div className="flex items-center gap-3 px-5 py-4">
                             <div
                               className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 ${meal.color}`}
@@ -446,25 +393,21 @@ function OrderPage() {
                               {meal.icon}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <span
-                                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide ${meal.color}`}
-                              >
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide ${meal.color}`}>
                                 {meal.label}
                               </span>
                               <h3 className="mt-0.5 truncate text-sm font-bold leading-tight text-[#0d2233] dark:text-[#ddeef7] sm:text-base">
                                 {order.meal.name}
                               </h3>
                               <p className="truncate text-xs font-light text-[#5c85a0] dark:text-[#7a9baf]">
-                                Menu :{" "}
+                                {t("menu_label")} :{" "}
                                 <span className="font-medium text-[#0d2233] dark:text-[#ddeef7]">
                                   {order.menu.name}
                                 </span>
                               </p>
                             </div>
                             <div className="flex shrink-0 flex-col items-end gap-1.5">
-                              <span
-                                className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${sc.classes}`}
-                              >
+                              <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${sc.classes}`}>
                                 {sc.icon}
                                 {sc.label}
                               </span>
@@ -489,16 +432,11 @@ function OrderPage() {
           onClick={() => navigate("/meal")}
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{
-            delay: 0.4,
-            type: "spring",
-            stiffness: 260,
-            damping: 20,
-          }}
+          transition={{ delay: 0.4, type: "spring", stiffness: 260, damping: 20 }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.93 }}
           className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#2a7db5] shadow-2xl shadow-[#2a7db5]/30 sm:hidden"
-          aria-label="Nouvelle commande"
+          aria-label={t("new_order")}
           style={{ WebkitTapHighlightColor: "transparent" }}
         >
           <Plus className="h-6 w-6 text-white" />

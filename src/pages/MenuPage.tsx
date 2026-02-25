@@ -5,8 +5,10 @@ import { ArrowLeft, Utensils, ChefHat, Salad, CheckCircle } from "lucide-react";
 import { TAB_THEMES, type MenuDto } from "@/models/menu";
 import type { MealsDto } from "@/models/meal";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 
 const MenuPage = () => {
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [menus, setMenus] = useState<MenuDto[]>([]);
@@ -16,6 +18,11 @@ const MenuPage = () => {
 
   const meal = location.state?.meal as MealsDto | undefined;
   const menusFromState = location.state?.menus as MenuDto[] | undefined;
+
+  useEffect(() => {
+document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
 
   useEffect(() => {
     const load = async () => {
@@ -52,7 +59,7 @@ const MenuPage = () => {
 
   useEffect(() => {
     if (!meal) {
-      navigate("/meals"); // or wherever your meal list is
+      navigate("/meals");
     }
   }, [meal, navigate]);
 
@@ -65,6 +72,7 @@ const MenuPage = () => {
       },
     });
   };
+
   return (
     <div className="min-h-screen bg-[#f4f9fd] px-5 py-10 transition-colors duration-300 dark:bg-[#0a1520] sm:py-14">
       <div className="mx-auto max-w-7xl">
@@ -77,8 +85,9 @@ const MenuPage = () => {
           style={{ WebkitTapHighlightColor: "transparent" }}
         >
           <ArrowLeft size={15} />
-          Back to meals
+          {t("back_to_meals")}
         </motion.button>
+
         <motion.header
           className="mx-auto mb-10 max-w-2xl text-center sm:mb-14"
           initial={{ opacity: 0, y: -18 }}
@@ -87,19 +96,18 @@ const MenuPage = () => {
         >
           <div className="mb-3 inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#5c85a0] dark:text-[#7a9baf]">
             <Utensils size={13} className="text-[#2a7db5]" />
-            Today's Menu
+            {t("todays_menu")}
           </div>
           <h1 className="text-2xl font-bold leading-tight text-[#0d2233] dark:text-[#ddeef7] sm:text-3xl">
-            Choose your <em className="italic text-[#2a7db5]">menu</em>
+            {t("choose_your")} <em className="italic text-[#2a7db5]">{t("menu")}</em>
           </h1>
-
           <div className="mx-auto mt-4 h-0.5 w-12 rounded bg-[#2a7db5]" />
         </motion.header>
 
         {loading ? (
           <LoadingSkeleton />
         ) : menus.length === 0 ? (
-          <NotFound onBack={() => navigate(-1)} />
+          <NotFound onBack={() => navigate(-1)} t={t} />
         ) : (
           <motion.article
             initial={{ opacity: 0, y: 24 }}
@@ -115,9 +123,8 @@ const MenuPage = () => {
             <div className="mx-7 h-px bg-[#dde8f0] dark:bg-[#1a2d3e]" />
 
             <div className="px-7 pb-7 pt-5">
-              {/* ── Improved Tab bar ── */}
+              {/* Tab pills row */}
               <div className="mb-6">
-                {/* Tab pills row */}
                 <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
                   {menus.map((menu, idx) => {
                     const isActive = idx === activeTab;
@@ -131,8 +138,7 @@ const MenuPage = () => {
                           relative flex-1 min-w-20 min-h-13 rounded-xl px-3 py-2.5
                           text-sm font-semibold transition-all duration-200
                           outline-none focus-visible:ring-2 focus-visible:ring-[#2a7db5] focus-visible:ring-offset-2
-                          dark:focus-visible:ring-offset-[#0a1520]
-                          active:scale-[0.97]
+                          dark:focus-visible:ring-offset-[#0a1520] active:scale-[0.97]
                           ${
                             isActive
                               ? `${tabTheme.activeBg} ${tabTheme.active} shadow-md border border-[#ccdfe9] dark:border-[#1a2d3e]`
@@ -140,7 +146,6 @@ const MenuPage = () => {
                           }
                         `}
                       >
-                        {/* Active indicator dot */}
                         {isActive && (
                           <motion.span
                             layoutId="tab-dot"
@@ -158,7 +163,7 @@ const MenuPage = () => {
               <div className="mb-3 flex items-center gap-2">
                 <ChefHat size={13} className="text-[#7a9baf]" />
                 <p className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-[#7a9baf]">
-                  Today's selection
+                  {t("todays_selection")}
                 </p>
               </div>
 
@@ -173,18 +178,15 @@ const MenuPage = () => {
                     transition={{ duration: 0.25, ease: "easeOut" }}
                     className="flex flex-col gap-2.5"
                   >
-                    {activeMenu.body.map((el, idx) => {
-                      return (
-                        <>
-                          <CourseRow
-                            icon={Salad}
-                            label={`Plat ${idx + 1}`}
-                            value={el}
-                            bar={theme.entree}
-                          />
-                        </>
-                      );
-                    })}
+                    {activeMenu.body.map((el, idx) => (
+                      <CourseRow
+                        key={idx}
+                        icon={Salad}
+                        label={`${t("dish")} ${idx + 1}`}
+                        value={el}
+                        bar={theme.entree}
+                      />
+                    ))}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -198,7 +200,7 @@ const MenuPage = () => {
                 style={{ WebkitTapHighlightColor: "transparent" }}
               >
                 <CheckCircle size={16} strokeWidth={2.2} />
-                Order {activeMenu?.name}
+                {t("order_menu", { name: activeMenu?.name })}
               </motion.button>
             </div>
           </motion.article>
@@ -220,18 +222,14 @@ const CourseRow = ({
   bar: string;
 }) => (
   <div className="flex items-start gap-4 rounded-xl border border-[#ccdfe9] bg-[#f4f9fd] px-4 py-3.5 dark:border-[#1a2d3e] dark:bg-[#0a1520]">
-    <div
-      className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${bar}`}
-    >
+    <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${bar}`}>
       <Icon size={15} strokeWidth={1.8} />
     </div>
     <div className="min-w-0">
       <p className="text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-[#7a9baf] dark:text-[#5c85a0]">
         {label}
       </p>
-      <p className="mt-0.5 text-sm font-medium text-[#0d2233] dark:text-[#ddeef7]">
-        {value}
-      </p>
+      <p className="mt-0.5 text-sm font-medium text-[#0d2233] dark:text-[#ddeef7]">{value}</p>
     </div>
   </div>
 );
@@ -252,40 +250,34 @@ const LoadingSkeleton = () => (
     <div className="space-y-3 px-7 pb-7 pt-5">
       <div className="flex gap-2">
         {[...Array(3)].map((_, i) => (
-          <div
-            key={i}
-            className="h-13 flex-1 rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]"
-          />
+          <div key={i} className="h-13 flex-1 rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]" />
         ))}
       </div>
       <div className="h-10 w-full rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]" />
       {[...Array(3)].map((_, i) => (
-        <div
-          key={i}
-          className="h-14 w-full rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]"
-        />
+        <div key={i} className="h-14 w-full rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]" />
       ))}
       <div className="h-12 w-full rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]" />
     </div>
   </div>
 );
 
-const NotFound = ({ onBack }: { onBack: () => void }) => (
+const NotFound = ({ onBack, t }: { onBack: () => void; t: (key: string) => string }) => (
   <div className="flex flex-col items-center justify-center py-24 text-center">
     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#ccdfe9] bg-white dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">
       <Utensils size={28} className="text-[#7a9baf]" strokeWidth={1.5} />
     </div>
-    <p className=" text-xl font-bold text-[#0d2233] dark:text-[#ddeef7]">
-      No menus available
+    <p className="text-xl font-bold text-[#0d2233] dark:text-[#ddeef7]">
+      {t("no_menus_available")}
     </p>
     <p className="mt-1 text-sm font-light text-[#5c85a0] dark:text-[#7a9baf]">
-      Check back later or contact the kitchen
+      {t("no_menus_desc")}
     </p>
     <button
       onClick={onBack}
       className="mt-6 rounded-full border border-[#ccdfe9] bg-[#f4f9fd] px-5 py-2 text-sm font-semibold text-[#5c85a0] transition-all hover:border-[#2a7db5]/40 dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#7a9baf]"
     >
-      ← Back to meals
+      ← {t("back_to_meals")}
     </button>
   </div>
 );

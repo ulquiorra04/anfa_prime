@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion} from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Utensils, ChevronRight, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { ThemeContext } from '../context/ThemeContext';
 import { CARD_ACCENTS, type MealsDto } from '@/models/meal';
 import { cardVariants, containerVariants } from '@/utils/motion';
+import { useTranslation } from 'react-i18next';
 
 const MealsPage = () => {
+  const { t, i18n } = useTranslation();
   const [meals, setMeals] = useState<MealsDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,6 +18,11 @@ const MealsPage = () => {
   const themeContext = useContext(ThemeContext);
 
   if (!themeContext) throw new Error('MealsPage must be used within a ThemeProvider');
+
+  useEffect(() => {
+document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
 
   useEffect(() => {
     const fetchmeals = async () => {
@@ -36,36 +43,38 @@ const MealsPage = () => {
     fetchmeals();
   }, []);
 
-const handleMealsClick = (meal: MealsDto) => {
-  navigate(`/meal/${meal.id}`, { state: { meal } });
-};
+  const handleMealsClick = (meal: MealsDto) => {
+    navigate(`/meal/${meal.id}`, { state: { meal } });
+  };
 
-const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
-  if (e.key === 'Enter' || e.key === ' ') {
-    e.preventDefault();
-    handleMealsClick(meal);
-  }
-};
- if (error) {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f4f9fd] p-4 dark:bg-[#0a1520]">
-      <div className="flex max-w-md flex-col items-center rounded-2xl border border-[#f0c0c0] bg-white p-8 text-center shadow-sm dark:border-[#3d1515] dark:bg-[#0d1e2d]">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#f0c0c0] bg-[#fdf0f0] dark:border-[#3d1515] dark:bg-[#2a0d0d]">
-          <AlertTriangle size={30} className="text-[#b03a3a] dark:text-[#f08080]" strokeWidth={1.8} />
+  const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleMealsClick(meal);
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f4f9fd] p-4 dark:bg-[#0a1520]">
+        <div className="flex max-w-md flex-col items-center rounded-2xl border border-[#f0c0c0] bg-white p-8 text-center shadow-sm dark:border-[#3d1515] dark:bg-[#0d1e2d]">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#f0c0c0] bg-[#fdf0f0] dark:border-[#3d1515] dark:bg-[#2a0d0d]">
+            <AlertTriangle size={30} className="text-[#b03a3a] dark:text-[#f08080]" strokeWidth={1.8} />
+          </div>
+          <h2 className="mb-1 text-lg font-bold text-[#0d2233] dark:text-[#ddeef7]">
+            {t('something_went_wrong')}
+          </h2>
+          <p className="mb-3 text-sm text-[#b03a3a] dark:text-[#f08080]">{error}</p>
+          <p className="text-xs font-medium text-[#5c85a0] dark:text-[#7a9baf]">
+            {t('contact_direction_pre')}{' '}
+            <span className="font-bold text-[#2a7db5]">{t('contact_direction_bold')}</span>{' '}
+            {t('contact_direction_post')}
+          </p>
         </div>
-        <h2 className="mb-1 text-lg font-bold text-[#0d2233] dark:text-[#ddeef7]">
-          Something went wrong
-        </h2>
-        <p className="mb-3 text-sm text-[#b03a3a] dark:text-[#f08080]">{error}</p>
-        <p className="text-xs font-medium text-[#5c85a0] dark:text-[#7a9baf]">
-          Please contact the{' '}
-          <span className="font-bold text-[#2a7db5]">direction</span>{' '}
-          if the problem persists.
-        </p>
       </div>
-    </div>
-  );
-}
+    );
+  }
+
   const colsClass =
     meals.length === 1
       ? 'grid-cols-1 max-w-sm mx-auto'
@@ -88,7 +97,7 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <ArrowLeft size={15} />
-          Back to orders
+          {t('back_to_orders')}
         </motion.button>
 
         {/* Header */}
@@ -100,11 +109,11 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
         >
           <div className="mb-3 inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#5c85a0] dark:text-[#7a9baf]">
             <Utensils size={13} className="text-[#2a7db5]" />
-            Today's Menu
+            {t('todays_menu')}
           </div>
           <h1 className="mb-3 text-[clamp(2.2rem,6vw,3.8rem)] font-bold leading-[1.1] text-[#0d2233] dark:text-[#ddeef7]">
-            Choose your{' '}
-            <em className="italic text-[#2a7db5]">meal</em>
+            {t('choose_your')}{' '}
+            <em className="italic text-[#2a7db5]">{t('meal')}</em>
           </h1>
           <div className="mx-auto mt-4 h-0.5 w-12 rounded bg-[#2a7db5]" />
         </motion.header>
@@ -158,7 +167,7 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
                     <motion.button
                       key={cat.id}
                       type="button"
-                      aria-label={`Select ${cat.name}`}
+                      aria-label={`${t('select')} ${cat.name}`}
                       onClick={() => handleMealsClick(cat)}
                       onTouchStart={() => setPressedId(String(cat.id))}
                       onTouchEnd={() => setPressedId(null)}
@@ -187,11 +196,13 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
                         className={`
                           absolute left-0 top-0 h-full w-0.75 rounded-r-full
                           bg-[#2a7db5] transition-transform duration-150 origin-left
-                          ${pressedId === String(cat.id)? 'scale-x-100' : 'scale-x-0'}
+                          ${pressedId === String(cat.id) ? 'scale-x-100' : 'scale-x-0'}
                           group-hover/item:scale-x-100
                         `}
                       />
-                      <span className="truncate pl-1 pr-3">View {cat.name} meals</span>
+                      <span className="truncate pl-1 pr-3">
+                        {t('view_meals', { name: cat.name })}
+                      </span>
                       <ChevronRight
                         size={18}
                         className="
