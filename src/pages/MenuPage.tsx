@@ -13,6 +13,8 @@ import ErrorComponent from "@/components/error";
 const MenuPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [patient, setPatient] = useState<string | null>(null);
+  const [menus, setMenus] = useState<MenuDto[]>([]);
+  const [activeMenu, setActiveMenu] = useState<MenuDto | null>(null);
 
 
 
@@ -20,7 +22,6 @@ const MenuPage = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const [menus, setMenus] = useState<MenuDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
   const [username, setUsername] = useState<string>("Patient");
@@ -42,6 +43,7 @@ const MenuPage = () => {
             setError(mns.message);
           } else {
             setMenus(mns.data ?? []);
+            setActiveMenu(mns.data ? mns.data[activeTab] : null);
             setPatient(localStorage.getItem(`patient`));
           }
         }
@@ -56,8 +58,7 @@ const MenuPage = () => {
   }, [menusFromState]);
 
   const theme = TAB_THEMES[activeTab] ?? TAB_THEMES[0];
-  const activeMenu = menus[activeTab];
-
+  //const activeMenu = menus[activeTab];
   useEffect(() => {
     if (!meal) {
       navigate("/meals"); // or wherever your meal list is
