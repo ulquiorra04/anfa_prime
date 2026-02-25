@@ -4,9 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Utensils, ChefHat, Salad, CheckCircle } from "lucide-react";
 import { TAB_THEMES, type MenuDto } from "@/models/menu";
 import type { MealsDto } from "@/models/meal";
-import axios from "axios";
 import Navbar from "@/components/Navbar";
-import { set } from "date-fns";
 import type { ResponseDto } from "@/models/response";
 import ErrorComponent from "@/components/error";
 
@@ -15,6 +13,7 @@ const MenuPage = () => {
   const [patient, setPatient] = useState<string | null>(null);
   const [menus, setMenus] = useState<MenuDto[]>([]);
   const [activeMenu, setActiveMenu] = useState<MenuDto | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
 
 
 
@@ -23,8 +22,6 @@ const MenuPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState(0);
-  const [username, setUsername] = useState<string>("Patient");
 
   const meal = location.state?.meal as MealsDto | undefined;
   const menusFromState = location.state?.menus as MenuDto[] | undefined;
@@ -68,7 +65,6 @@ const MenuPage = () => {
   const handleOrder = () => {
     navigate("/recap", {
       state: {
-        username,
         meal: meal ? { id: meal.id, name: meal.name } : undefined,
         menu: activeMenu,
       },
@@ -151,7 +147,7 @@ const MenuPage = () => {
                       return (
                         <button
                           key={menu.id}
-                          onClick={() => setActiveTab(idx)}
+                          onClick={() => {setActiveTab(idx); setActiveMenu(menu)}}
                           style={{ WebkitTapHighlightColor: "transparent" }}
                           className={`
                             relative flex-1 min-w-20 min-h-13 rounded-xl px-3 py-2.5
