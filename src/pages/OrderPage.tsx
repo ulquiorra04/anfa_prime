@@ -40,6 +40,8 @@ function OrderPage() {
           console.log(sj);
           setOrders(sj.data?.orders ?? []);
           setSejour(sj.data ?? null);
+          // Save localstorage
+          localStorage.setItem("patient", sj.data?.name ?? "");
         }
 
         
