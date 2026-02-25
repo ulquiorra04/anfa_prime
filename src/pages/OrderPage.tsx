@@ -9,6 +9,10 @@ import {
 import { DrillCalendar } from "@/components/DrillCalender";
 import { isSameDay, toDate } from "date-fns";
 import { formatDayLabel, formatDayShort, formatTime, isInRange } from "@/utils/helper";
+import ErrorComponent from "@/components/error";
+import type { ResponseDto } from "@/models/response";
+import Navbar from "@/components/Navbar";
+import type { sejourDto } from "@/models/sejour";
 import { useTranslation } from "react-i18next"; // ✅ Fixed: was wrongly `useTransition` from React
 
 type Mode = "single" | "range";
@@ -18,6 +22,9 @@ function OrderPage() {
   const { t, i18n } = useTranslation(); // ✅ Fixed
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string>("");
+  const [sejour, setSejour] = useState<sejourDto | null>(null);
+
   const [calOpen, setCalOpen] = useState(false);
   const [calMode, setCalMode] = useState<Mode>("single");
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -33,10 +40,20 @@ function OrderPage() {
     (async () => {
       try {
         setLoading(true);
-        const response = await fetch("data/sejour.json");
-        if (!response.ok) throw new Error("Failed to fetch");
-        const data = await response.json();
-        if (data && data.orders) setOrders(data.orders);
+        const reponse = await fetch("data/sejour.json");
+        console.log(reponse);
+        if (!reponse.ok) {
+          setErrorMsg("Failed to fetch orders");
+        } else {
+          const sj: ResponseDto<sejourDto> = await reponse.json();
+          console.log(sj);
+          setOrders(sj.data?.orders ?? []);
+          setSejour(sj.data ?? null);
+          // Save localstorage
+          localStorage.setItem("patient", sj.data?.name ?? "");
+        }
+
+        
       } catch (e) {
         console.error("Error loading orders:", e);
       } finally {
@@ -149,61 +166,69 @@ function OrderPage() {
     </div>
   );
 
-  return (
-    <div className="min-h-screen bg-[#f4f9fd] px-4 py-10 transition-colors duration-300 dark:bg-[#0a1520] sm:px-5 sm:py-14">
-      <div className="mx-auto max-w-3xl">
-        {/* Header */}
-        <motion.header
-          className="mb-8"
-          initial={{ opacity: 0, y: -16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="mb-3 inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#5c85a0] dark:text-[#7a9baf]">
-                <ClipboardList size={13} className="text-[#2a7db5]" />
-                {t("your_orders")}
-              </div>
-              <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.1] text-[#0d2233] dark:text-[#ddeef7]">
-                {t("meal")} <em className="italic text-[#2a7db5]">{t("history")}</em>
-              </h1>
-              <div className="mt-4 h-0.5 w-12 rounded bg-[#2a7db5]" />
-            </div>
+  if (errorMsg) {
+    return <ErrorComponent msg={errorMsg} />;
+  }
 
-            <div className="flex items-center gap-2 self-end">
-              {/* Calendar toggle */}
-              {!loading && orders.length > 0 && (
-                <div className="relative">
-                  <button
-                    onClick={() => setCalOpen((v) => !v)}
-                    style={{ WebkitTapHighlightColor: "transparent" }}
-                    className={`
-                      flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-semibold
-                      transition-all duration-200 max-w-45
-                      ${calOpen || hasFilter
-                        ? "border-[#2a7db5] bg-[#2a7db5] text-white shadow-md"
-                        : "border-[#ccdfe9] bg-white text-[#5c85a0] hover:border-[#2a7db5]/40 hover:bg-[#eaf4fb] hover:text-[#2a7db5] dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#7a9baf]"
-                      }
-                    `}
-                  >
-                    <CalendarDays size={14} className="shrink-0" />
-                    <span className="truncate">{filterLabel ?? t("filter")}</span>
-                    {hasFilter && (
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          clearFilter();
-                          setCalOpen(false);
-                        }}
-                        className="ml-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/25 hover:bg-white/40"
-                      >
-                        <X size={10} />
-                      </span>
-                    )}
-                  </button>
+  return (
+    <>
+      <Navbar name={ sejour?.name ?? "Your Menu" } />
+      <div className="min-h-screen bg-[#f4f9fd] px-4 py-10 transition-colors duration-300 dark:bg-[#0a1520] sm:px-5 sm:py-14">
+        <div className="mx-auto max-w-3xl">
+          {/* Header */}
+          <motion.header
+            className="mb-8"
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <div className="mb-3 inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#5c85a0] dark:text-[#7a9baf]">
+                  <ClipboardList size={13} className="text-[#2a7db5]" />
+                  {t("your_orders")}
+                </div>
+                <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.1] text-[#0d2233] dark:text-[#ddeef7]">
+                  {t("meal")} <em className="italic text-[#2a7db5]">{t("history")}</em>
+                </h1>
+                <div className="mt-4 h-0.5 w-12 rounded bg-[#2a7db5]" />
+              </div>
+
+              <div className="flex items-center gap-2 self-end">
+                {/* Calendar toggle */}
+                {!loading && orders.length > 0 && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setCalOpen((v) => !v)}
+                      style={{ WebkitTapHighlightColor: "transparent" }}
+                      className={`
+                        flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-xs font-semibold
+                        transition-all duration-200 max-w-45
+                        ${
+                          calOpen || hasFilter
+                            ? "border-[#2a7db5] bg-[#2a7db5] text-white shadow-md"
+                            : "border-[#ccdfe9] bg-white text-[#5c85a0] hover:border-[#2a7db5]/40 hover:bg-[#eaf4fb] hover:text-[#2a7db5] dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#7a9baf]"
+                        }
+                      `}
+                    >
+                      <CalendarDays size={14} className="shrink-0" />
+                           <span className="truncate">{filterLabel ?? t("filter")}</span>
+
+                      {hasFilter && (
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            clearFilter();
+                            setCalOpen(false);
+                          }}
+                          className="ml-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/25 hover:bg-white/40"
+                        >
+                          <X size={10} />
+                        </span>
+                      )}
+                    </button>
 
                   {/* Dropdown panel */}
                   <AnimatePresence>
@@ -235,23 +260,23 @@ function OrderPage() {
                           ))}
                         </div>
 
-                        <DrillCalendar
-                          mode={calMode}
-                          selected={selectedDay}
-                          rangeStart={rangeStart}
-                          rangeEnd={rangeEnd}
-                          onSelectSingle={setSelectedDay}
-                          onSelectRange={(s, e) => {
-                            setRangeStart(s);
-                            setRangeEnd(e);
-                          }}
-                          activeDates={activeDates}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )}
+                          <DrillCalendar
+                            mode={calMode}
+                            selected={selectedDay}
+                            rangeStart={rangeStart}
+                            rangeEnd={rangeEnd}
+                            onSelectSingle={setSelectedDay}
+                            onSelectRange={(s, e) => {
+                              setRangeStart(s);
+                              setRangeEnd(e);
+                            }}
+                            activeDates={activeDates}
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
 
               {!loading && grouped.length > 0 && (
                 <motion.button
@@ -443,6 +468,7 @@ function OrderPage() {
         </motion.button>
       )}
     </div>
+    </>
   );
 }
 
