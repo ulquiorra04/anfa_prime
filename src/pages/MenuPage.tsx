@@ -5,8 +5,19 @@ import { ArrowLeft, Utensils, ChefHat, Salad, CheckCircle } from "lucide-react";
 import { TAB_THEMES, type MenuDto } from "@/models/menu";
 import type { MealsDto } from "@/models/meal";
 import axios from "axios";
+import Navbar from "@/components/Navbar";
+import { set } from "date-fns";
+import type { ResponseDto } from "@/models/response";
+import ErrorComponent from "@/components/error";
 
 const MenuPage = () => {
+  const [error, setError] = useState<string | null>(null);
+  const [patient, setPatient] = useState<string | null>(null);
+
+
+
+
+
   const location = useLocation();
   const navigate = useNavigate();
   const [menus, setMenus] = useState<MenuDto[]>([]);
@@ -21,24 +32,21 @@ const MenuPage = () => {
     const load = async () => {
       try {
         setLoading(true);
-
-        const sejourRes = await axios.get(
-          `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_MENU}`,
-        );
-        const sejour = sejourRes.data;
-        if (sejour?.name) setUsername(sejour.name);
-
-        if (menusFromState && menusFromState.length > 0) {
-          setMenus(menusFromState);
-          return;
+        const response = await fetch(`../data/menus.json`);
+        if (!response.ok) {
+          setError(`Failed to fetch meals: ${response.status} ${response.statusText}`);
+        } else {
+          const mns: ResponseDto<MenuDto[]> = await response.json();
+          console.log(mns);
+          if(mns.status === 0 || mns.status === -1) {
+            setError(mns.message);
+          } else {
+            setMenus(mns.data ?? []);
+            setPatient(localStorage.getItem(`patient`));
+          }
         }
-
-        const menusRes = await axios.get<MenuDto[]>(
-          `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_MENU}`,
-        );
-        setMenus(menusRes.data);
       } catch (err) {
-        console.error("Error fetching data:", err);
+        setError(err instanceof Error ? err.message : `Failed to load menus`);
       } finally {
         setLoading(false);
       }
@@ -65,146 +73,164 @@ const MenuPage = () => {
       },
     });
   };
+
+  if(error) {
+    return (
+        <>
+          <Navbar name={ patient ?? "No Patient" } />
+          <ErrorComponent msg={error} />
+        </>
+    );
+  }
+  
+
+
+
+
+
   return (
-    <div className="min-h-screen bg-[#f4f9fd] px-5 py-10 transition-colors duration-300 dark:bg-[#0a1520] sm:py-14">
-      <div className="mx-auto max-w-7xl">
-        <motion.button
-          initial={{ opacity: 0, x: -16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.35 }}
-          onClick={() => navigate(-1)}
-          className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#ccdfe9] bg-white px-4 py-2 text-sm font-medium text-[#5c85a0] transition-all duration-200 hover:-translate-x-0.5 hover:border-[#2a7db5]/40 hover:bg-[#eaf4fb] dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#7a9baf] dark:hover:bg-[#0d1a26]"
-          style={{ WebkitTapHighlightColor: "transparent" }}
-        >
-          <ArrowLeft size={15} />
-          Back to meals
-        </motion.button>
-        <motion.header
-          className="mx-auto mb-10 max-w-2xl text-center sm:mb-14"
-          initial={{ opacity: 0, y: -18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <div className="mb-3 inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#5c85a0] dark:text-[#7a9baf]">
-            <Utensils size={13} className="text-[#2a7db5]" />
-            Today's Menu
-          </div>
-          <h1 className="text-2xl font-bold leading-tight text-[#0d2233] dark:text-[#ddeef7] sm:text-3xl">
-            Choose your <em className="italic text-[#2a7db5]">menu</em>
-          </h1>
-
-          <div className="mx-auto mt-4 h-0.5 w-12 rounded bg-[#2a7db5]" />
-        </motion.header>
-
-        {loading ? (
-          <LoadingSkeleton />
-        ) : menus.length === 0 ? (
-          <NotFound onBack={() => navigate(-1)} />
-        ) : (
-          <motion.article
-            initial={{ opacity: 0, y: 24 }}
+    <>
+      <Navbar name={ patient ?? "No Patient" } />
+      <div className="min-h-screen bg-[#f4f9fd] px-5 py-10 transition-colors duration-300 dark:bg-[#0a1520] sm:py-14">
+        <div className="mx-auto max-w-7xl">
+          <motion.button
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.35 }}
+            onClick={() => navigate(-1)}
+            className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#ccdfe9] bg-white px-4 py-2 text-sm font-medium text-[#5c85a0] transition-all duration-200 hover:-translate-x-0.5 hover:border-[#2a7db5]/40 hover:bg-[#eaf4fb] dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#7a9baf] dark:hover:bg-[#0d1a26]"
+            style={{ WebkitTapHighlightColor: "transparent" }}
+          >
+            <ArrowLeft size={15} />
+            Back to meals
+          </motion.button>
+          <motion.header
+            className="mx-auto mb-10 max-w-2xl text-center sm:mb-14"
+            initial={{ opacity: 0, y: -18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden rounded-2xl border border-[#ccdfe9] bg-white shadow-sm dark:border-[#1a2d3e] dark:bg-[#0d1e2d]"
           >
-            <motion.div
-              className={`h-1 w-full bg-linear-to-r transition-all duration-500 ${theme.bar}`}
-              layoutId="tab-bar"
-            />
+            <div className="mb-3 inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#5c85a0] dark:text-[#7a9baf]">
+              <Utensils size={13} className="text-[#2a7db5]" />
+              Today's Menu
+            </div>
+            <h1 className="text-2xl font-bold leading-tight text-[#0d2233] dark:text-[#ddeef7] sm:text-3xl">
+              Choose your <em className="italic text-[#2a7db5]">menu</em>
+            </h1>
 
-            <div className="mx-7 h-px bg-[#dde8f0] dark:bg-[#1a2d3e]" />
+            <div className="mx-auto mt-4 h-0.5 w-12 rounded bg-[#2a7db5]" />
+          </motion.header>
 
-            <div className="px-7 pb-7 pt-5">
-              {/* ── Improved Tab bar ── */}
-              <div className="mb-6">
-                {/* Tab pills row */}
-                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-                  {menus.map((menu, idx) => {
-                    const isActive = idx === activeTab;
-                    const tabTheme = TAB_THEMES[idx] ?? TAB_THEMES[0];
-                    return (
-                      <button
-                        key={menu.id}
-                        onClick={() => setActiveTab(idx)}
-                        style={{ WebkitTapHighlightColor: "transparent" }}
-                        className={`
-                          relative flex-1 min-w-20 min-h-13 rounded-xl px-3 py-2.5
-                          text-sm font-semibold transition-all duration-200
-                          outline-none focus-visible:ring-2 focus-visible:ring-[#2a7db5] focus-visible:ring-offset-2
-                          dark:focus-visible:ring-offset-[#0a1520]
-                          active:scale-[0.97]
-                          ${
-                            isActive
-                              ? `${tabTheme.activeBg} ${tabTheme.active} shadow-md border border-[#ccdfe9] dark:border-[#1a2d3e]`
-                              : "bg-[#f4f9fd] text-[#7a9baf] border border-transparent hover:bg-[#eaf4fb] hover:text-[#5c85a0] dark:bg-[#0a1520] dark:text-[#5c85a0] dark:hover:bg-[#0d1a26]"
-                          }
-                        `}
-                      >
-                        {/* Active indicator dot */}
-                        {isActive && (
-                          <motion.span
-                            layoutId="tab-dot"
-                            className={`absolute bottom-2 left-1/2 -translate-x-1/2 h-1 w-4 rounded-full ${tabTheme.activeIndicator}`}
-                          />
-                        )}
-                        <span className="relative">{menu.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+          {loading ? (
+            <LoadingSkeleton />
+          ) : menus.length === 0 ? (
+            <NotFound onBack={() => navigate(-1)} />
+          ) : (
+            <motion.article
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden rounded-2xl border border-[#ccdfe9] bg-white shadow-sm dark:border-[#1a2d3e] dark:bg-[#0d1e2d]"
+            >
+              <motion.div
+                className={`h-1 w-full bg-linear-to-r transition-all duration-500 ${theme.bar}`}
+                layoutId="tab-bar"
+              />
 
-              {/* Section label */}
-              <div className="mb-3 flex items-center gap-2">
-                <ChefHat size={13} className="text-[#7a9baf]" />
-                <p className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-[#7a9baf]">
-                  Today's selection
-                </p>
-              </div>
+              <div className="mx-7 h-px bg-[#dde8f0] dark:bg-[#1a2d3e]" />
 
-              {/* Course rows */}
-              <AnimatePresence mode="wait">
-                {activeMenu && (
-                  <motion.div
-                    key={activeTab}
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
-                    className="flex flex-col gap-2.5"
-                  >
-                    {activeMenu.body.map((el, idx) => {
+              <div className="px-7 pb-7 pt-5">
+                {/* ── Improved Tab bar ── */}
+                <div className="mb-6">
+                  {/* Tab pills row */}
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                    {menus.map((menu, idx) => {
+                      const isActive = idx === activeTab;
+                      const tabTheme = TAB_THEMES[idx] ?? TAB_THEMES[0];
                       return (
-                        <>
-                          <CourseRow
-                            icon={Salad}
-                            label={`Plat ${idx + 1}`}
-                            value={el}
-                            bar={theme.entree}
-                          />
-                        </>
+                        <button
+                          key={menu.id}
+                          onClick={() => setActiveTab(idx)}
+                          style={{ WebkitTapHighlightColor: "transparent" }}
+                          className={`
+                            relative flex-1 min-w-20 min-h-13 rounded-xl px-3 py-2.5
+                            text-sm font-semibold transition-all duration-200
+                            outline-none focus-visible:ring-2 focus-visible:ring-[#2a7db5] focus-visible:ring-offset-2
+                            dark:focus-visible:ring-offset-[#0a1520]
+                            active:scale-[0.97]
+                            ${
+                              isActive
+                                ? `${tabTheme.activeBg} ${tabTheme.active} shadow-md border border-[#ccdfe9] dark:border-[#1a2d3e]`
+                                : "bg-[#f4f9fd] text-[#7a9baf] border border-transparent hover:bg-[#eaf4fb] hover:text-[#5c85a0] dark:bg-[#0a1520] dark:text-[#5c85a0] dark:hover:bg-[#0d1a26]"
+                            }
+                          `}
+                        >
+                          {/* Active indicator dot */}
+                          {isActive && (
+                            <motion.span
+                              layoutId="tab-dot"
+                              className={`absolute bottom-2 left-1/2 -translate-x-1/2 h-1 w-4 rounded-full ${tabTheme.activeIndicator}`}
+                            />
+                          )}
+                          <span className="relative">{menu.name}</span>
+                        </button>
                       );
                     })}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  </div>
+                </div>
 
-              {/* Order button */}
-              <motion.button
-                onClick={handleOrder}
-                whileHover={{ scale: 1.015 }}
-                whileTap={{ scale: 0.985 }}
-                className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-lg transition-colors duration-200 ${theme.btn}`}
-                style={{ WebkitTapHighlightColor: "transparent" }}
-              >
-                <CheckCircle size={16} strokeWidth={2.2} />
-                Order {activeMenu?.name}
-              </motion.button>
-            </div>
-          </motion.article>
-        )}
+                {/* Section label */}
+                <div className="mb-3 flex items-center gap-2">
+                  <ChefHat size={13} className="text-[#7a9baf]" />
+                  <p className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-[#7a9baf]">
+                    Today's selection
+                  </p>
+                </div>
+
+                {/* Course rows */}
+                <AnimatePresence mode="wait">
+                  {activeMenu && (
+                    <motion.div
+                      key={activeTab}
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
+                      className="flex flex-col gap-2.5"
+                    >
+                      {activeMenu.body.map((el, idx) => {
+                        return (
+                          <>
+                            <CourseRow
+                              icon={Salad}
+                              label={`Plat ${idx + 1}`}
+                              value={el}
+                              bar={theme.entree}
+                            />
+                          </>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Order button */}
+                <motion.button
+                  onClick={handleOrder}
+                  whileHover={{ scale: 1.015 }}
+                  whileTap={{ scale: 0.985 }}
+                  className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-lg transition-colors duration-200 ${theme.btn}`}
+                  style={{ WebkitTapHighlightColor: "transparent" }}
+                >
+                  <CheckCircle size={16} strokeWidth={2.2} />
+                  Order {activeMenu?.name}
+                </motion.button>
+              </div>
+            </motion.article>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
