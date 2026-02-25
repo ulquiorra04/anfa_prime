@@ -18,7 +18,7 @@ export default function Navbar(props:NavbarProps) {
   const { darkMode, toggleTheme } = theme;
 
   useEffect(() => {
-    document.documentElement.dir = i18n.dir();
+document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
 
