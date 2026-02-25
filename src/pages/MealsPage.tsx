@@ -13,7 +13,9 @@ import type { ResponseDto } from '@/models/response';
 const MealsPage = () => {
   const [meals, setMeals] = useState<MealsDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
+  const [patient, setPatient] = useState<string | null>(null);
+
   const [pressedId, setPressedId] = useState<string | null>(null);
   const navigate = useNavigate();
   const themeContext = useContext(ThemeContext);
@@ -35,6 +37,7 @@ const MealsPage = () => {
             setError(mls.message);
           } else {
             setMeals(mls.data ?? []);
+            setPatient(localStorage.getItem("patient"));
           }
         }
       } catch (err) {
@@ -59,7 +62,7 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
  if (error) {
   return (
     <>
-      <Navbar name='Meals' />
+      <Navbar name={ patient ?? "NO Patient" } />
       <ErrorComponent msg={error} />
     </>
   );
@@ -75,7 +78,7 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
 
   return (
     <>
-      <Navbar name='Meals' />
+      <Navbar name={ patient ?? "NO Patient" } />
       <div className="min-h-screen bg-[#f4f9fd] px-4 py-10 transition-colors duration-300 dark:bg-[#0a1520] sm:px-5 sm:py-14">
         <div className="mx-auto max-w-7xl">
           {/* Back button */}
