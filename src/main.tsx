@@ -35,6 +35,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { ThemeProvider } from './context/ThemeProvider';
+import '../src/i18n/i18n'
 
 const container = document.getElementById('root');
 

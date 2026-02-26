@@ -9,70 +9,22 @@ import {
   Salad,
   Home,
   Loader2,
-  Send,
+  Check,
+  Clock,
 } from "lucide-react";
 import type { RecapState } from "@/models/recap";
-import {  generateRef, formatDate } from "@/utils/helper";
+import { generateRef, formatDate, formatTime } from "@/utils/helper";
 import Navbar from "@/components/Navbar";
-
-const InfoRow = ({
-  icon: Icon,
-  label,
-  value,
-  accent = false,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  accent?: boolean;
-}) => (
-  <div className="flex items-center gap-4 rounded-xl border border-[#ccdfe9] bg-[#f4f9fd] px-4 py-3.5 dark:border-[#1a2d3e] dark:bg-[#0a1520]">
-    <div
-      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-        accent
-          ? "bg-[#e6fff9] text-[#02c39a] dark:bg-[#00271f] dark:text-[#46fdd5]"
-          : "bg-[#eaf4fb] text-[#2a7db5] dark:bg-[#01151d] dark:text-[#64b6e0]"
-      }`}
-    >
-      <Icon size={15} strokeWidth={1.8} />
-    </div>
-    <div className="min-w-0 flex-1">
-      <p className="text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-[#7a9baf] dark:text-[#5c85a0]">
-        {label}
-      </p>
-      <p className="mt-0.5 truncate text-sm font-semibold text-[#0d2233] dark:text-[#ddeef7]">
-        {value}
-      </p>
-    </div>
-  </div>
-);
-
-const CourseTag = ({
-  icon: Icon,
-  label,
-  value,
-  color,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  color: string;
-}) => (
-  <div className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ${color}`}>
-    <Icon size={13} strokeWidth={1.8} className="shrink-0" />
-    <div className="min-w-0">
-      <span className="text-[0.55rem] font-bold uppercase tracking-[0.12em] opacity-70">
-        {label} ·{" "}
-      </span>
-      <span className="text-xs font-medium">{value}</span>
-    </div>
-  </div>
-);
+import { useTranslation } from "react-i18next";
+import CourseTag from "@/components/CourseTag";
+import InfoRow from "@/components/InfoRow";
+import SectionHeader from "@/components/SectionHeader";
 
 const RecapPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as RecapState | undefined;
+  const { t } = useTranslation();
 
   const username = localStorage.getItem("patient") || "Patient";
   const meal = state?.meal;
@@ -80,8 +32,8 @@ const RecapPage = () => {
 
   const [ref] = useState<string>(generateRef);
   const [date] = useState<string>(formatDate);
-  //const [time] = useState<string>(() => formatTime(new Date().toISOString()));
-  // ── Confirm order state ──
+  const [time] = useState<string>(() => formatTime(new Date().toISOString()));
+
   const [confirmStatus, setConfirmStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
@@ -128,102 +80,69 @@ const RecapPage = () => {
   return (
     <>
       <Navbar name={username} />
+
       <div className="min-h-screen bg-[#f4f9fd] px-5 py-10 transition-colors duration-300 dark:bg-[#0a1520] sm:py-14">
         <div className="mx-auto max-w-xl">
           {/* ── Success banner ── */}
           <div className="mb-8 flex flex-col items-center text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#b8f6fe] bg-[#e0f9f7] shadow-lg shadow-[#02c39a]/10 dark:border-[#014d57] dark:bg-[#001a1d]">
-              <CheckCircle
-                size={30}
-                className="text-[#02c39a] dark:text-[#46fdd5]"
-                strokeWidth={1.8}
-              />
+            <div className="relative mb-5">
+              <div className="absolute inset-0 rounded-2xl bg-[#02c39a]/20 blur-xl" />
+              <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-[#b8f6fe] bg-[#e0f9f7] shadow-lg shadow-[#02c39a]/10 dark:border-[#014d57] dark:bg-[#001a1d]">
+                <CheckCircle
+                  size={30}
+                  className="text-[#02c39a] dark:text-[#46fdd5]"
+                  strokeWidth={1.8}
+                />
+              </div>
             </div>
             <h1 className="text-2xl font-bold text-[#0d2233] dark:text-[#ddeef7] sm:text-3xl">
-              Order <em className="italic text-[#02c39a]">confirmed</em>
+              {t("order")}{" "}
+              <em className="italic text-[#02c39a]">{t("confirme")}</em>
             </h1>
             <p className="mt-1.5 text-sm font-light text-[#5c85a0] dark:text-[#7a9baf]">
-              Here's a summary of your selection
+              {t("order_summary")}
             </p>
           </div>
-
-          {/* ── Recap card ── */}
           <article className="overflow-hidden rounded-2xl border border-[#ccdfe9] bg-white shadow-sm dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">
-            {/* Top bar */}
-            <div className="h-1 w-full bg-linear-to-r from-[#bbfff8] to-[#02c39a]" />
+            <div className="h-1 w-full bg-linear-to-r from-[#bbfff8] via-[#02c39a] to-[#2a7db5]" />
 
-            {/* Order ref + time */}
-            {
-              /**
-               * <div className="flex items-center justify-between px-7 pb-4 pt-6">
-              <div>
-                <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-[#7a9baf]">
-                  Order reference
-                </p>
-                <p className="font-mono text-lg font-bold text-[#0d2233] dark:text-[#ddeef7]">
-                  #{ref}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-[#7a9baf]">
-                  Placed at
-                </p>
-                <p className="text-sm font-semibold text-[#0d2233] dark:text-[#ddeef7]">
-                  {time}
-                </p>
-              </div>
-            </div>
-               */
-            }
-
-            <div className="mx-7 h-px bg-[#dde8f0] dark:bg-[#1a2d3e]" />
-
-            {/* Patient details */}
-            <div className="px-7 pb-2 pt-5">
-              <div className="mb-3 flex items-center gap-2">
-                <User size={12} className="text-[#7a9baf]" />
-                <p className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-[#7a9baf]">
-                  Order details
-                </p>
-              </div>
+            <div className="px-7 pb-2 pt-6">
+              <SectionHeader icon={User} label={t("order_details")} />
               <div className="flex flex-col gap-2">
-                <InfoRow icon={Calendar} label="Order date" value={date} />
+                <InfoRow icon={Calendar} label={t("order_date")} value={date} />
+                <InfoRow icon={Clock} label={t("order_time")} value={time} />
               </div>
             </div>
 
-            <div className="mx-7 mt-5 h-px bg-[#dde8f0] dark:bg-[#1a2d3e]" />
+            <div className="my-5">
+              <div className="mx-7 h-px bg-linear-to-r from-transparent via-[#dde8f0] to-transparent dark:via-[#1a2d3e]" />
+            </div>
 
-            {/* Meal selection */}
-            <div className="px-7 pb-2 pt-5">
-              <div className="mb-3 flex items-center gap-2">
-                <Utensils size={12} className="text-[#7a9baf]" />
-                <p className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-[#7a9baf]">
-                  Meal selection
-                </p>
-              </div>
+            <div className="px-7 pb-2">
+              <SectionHeader icon={Utensils} label={t("meal_selection")} />
               <div className="flex flex-col gap-2">
-                <InfoRow icon={Utensils} label="Meal" value={meal?.name ?? "—"} />
+                <InfoRow
+                  icon={Utensils}
+                  label={t("meal")}
+                  value={meal?.name ?? "—"}
+                />
                 <InfoRow
                   icon={ChefHat}
-                  label="Menu chosen"
-                  value={menu?.name ?? ""}
+                  label={t("menu_chosen")}
+                  value={menu?.name ?? "—"}
                   accent
                 />
               </div>
             </div>
 
-            {/* Course breakdown */}
             {menu?.body && menu.body.length > 0 && (
               <>
-                <div className="mx-7 mt-5 h-px bg-[#dde8f0] dark:bg-[#1a2d3e]" />
-                <div className="px-7 pb-6 pt-5">
-                  <div className="mb-3 flex items-center gap-2">
-                    <ChefHat size={12} className="text-[#7a9baf]" />
-                    <p className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-[#7a9baf]">
-                      Menu breakdown
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-1.5">
+                <div className="my-5">
+                  <div className="mx-7 h-px bg-linear-to-r from-transparent via-[#dde8f0] to-transparent dark:via-[#1a2d3e]" />
+                </div>
+                <div className="px-7 pb-7">
+                  <SectionHeader icon={ChefHat} label={t("menu_breakdown")} />
+                  <div className="flex flex-col gap-2">
                     {menu.body.map((item, idx) => (
                       <CourseTag
                         key={idx}
@@ -247,19 +166,22 @@ const RecapPage = () => {
 
           {/* ── Error message ── */}
           {confirmStatus === "error" && (
-            <div className="mt-4 rounded-xl border border-[#f0c0c0] bg-[#fdf0f0] px-4 py-3 text-sm text-[#b03a3a] dark:border-[#3d1515] dark:bg-[#2a0d0d] dark:text-[#f08080]">
-              {errorMessage || "Failed to place order. Please try again."}
+            <div className="mt-4 flex items-start gap-3 rounded-xl border border-[#f0c0c0] bg-[#fdf0f0] px-4 py-3 dark:border-[#3d1515] dark:bg-[#2a0d0d]">
+              <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#b03a3a]" />
+              <p className="text-sm text-[#b03a3a] dark:text-[#f08080]">
+                {errorMessage || "Failed to place order. Please try again."}
+              </p>
             </div>
           )}
 
-          
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          {/* ── Action buttons ── */}
+          <div className="mt-6 grid grid-cols-2 gap-3">
             <button
               onClick={() => navigate("/")}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#05668d] py-3 text-sm font-bold text-white shadow-lg shadow-[#05668d]/20 transition-all duration-200 hover:scale-[1.01] hover:bg-[#045372] active:scale-[0.99]"
+              className="flex items-center justify-center gap-2 rounded-xl border border-[#ccdfe9] bg-white py-3.5 text-sm font-bold text-[#05668d] shadow-sm transition-all duration-200 hover:scale-[1.01] hover:border-[#05668d]/30 hover:bg-[#f0f9fd] active:scale-[0.99] dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#29e3fc] dark:hover:bg-[#0a1a2a]"
             >
               <Home size={15} />
-              Back to home
+              <span className="hidden sm:inline">{t("back_to_home")}</span>
             </button>
 
             <button
@@ -267,30 +189,29 @@ const RecapPage = () => {
               disabled={
                 confirmStatus === "loading" || confirmStatus === "success"
               }
-              className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white shadow-lg transition-all duration-200
-        ${
-          confirmStatus === "success"
-            ? "bg-[#02c39a] shadow-[#02c39a]/20 cursor-default"
-            : confirmStatus === "loading"
-              ? "bg-[#2a7db5]/70 shadow-[#2a7db5]/10 cursor-not-allowed"
-              : "bg-[#2a7db5] shadow-[#2a7db5]/20 hover:scale-[1.01] hover:bg-[#1e6fa0] active:scale-[0.99]"
-        }
-      `}
+              className={`flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-lg transition-all duration-200
+                ${
+                  confirmStatus === "success"
+                    ? "bg-[#02c39a] shadow-[#02c39a]/20 cursor-default"
+                    : confirmStatus === "loading"
+                      ? "bg-[#2a7db5]/60 shadow-none cursor-not-allowed"
+                      : "bg-[#2a7db5] shadow-[#2a7db5]/20 hover:scale-[1.01] hover:bg-[#1e6fa0] active:scale-[0.99]"
+                }`}
             >
               {confirmStatus === "loading" ? (
                 <>
-                  <Loader2 size={15} className="animate-spin" />
-                  Sending…
+                  <Loader2 size={15} className="animate-spin " />
+                  <span>{t("sending")}</span>
                 </>
               ) : confirmStatus === "success" ? (
                 <>
                   <CheckCircle size={15} />
-                  Order Sent!
+                  <span className="hidden sm:inline">{t("order_sent")}</span>
                 </>
               ) : (
                 <>
-                  <Send size={15} />
-                  Confirm Order
+                  <Check size={15} />
+                  <span className="hidden sm:inline">{t("confirm_order")}</span>
                 </>
               )}
             </button>
