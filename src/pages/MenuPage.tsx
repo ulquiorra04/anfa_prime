@@ -1,13 +1,14 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Utensils, ChefHat, Salad, CheckCircle } from "lucide-react";
+import { Utensils, ChefHat, Salad, CheckCircle } from "lucide-react";
 import { TAB_THEMES, type MenuDto } from "@/models/menu";
 import type { MealsDto } from "@/models/meal";
 import Navbar from "@/components/Navbar";
 import type { ResponseDto } from "@/models/response";
 import ErrorComponent from "@/components/error";
 import { useTranslation } from "react-i18next";
+import BackButton from "@/components/BackButton";
 
 const MenuPage = () => {
   const { t, i18n } = useTranslation();
@@ -40,7 +41,6 @@ const MenuPage = () => {
           );
         } else {
           const mns: ResponseDto<MenuDto[]> = await response.json();
-          console.log(mns);
           if (mns.status === 0 || mns.status === -1) {
             setError(mns.message);
           } else {
@@ -61,11 +61,6 @@ const MenuPage = () => {
 
   const theme = TAB_THEMES[activeTab] ?? TAB_THEMES[0];
   //const activeMenu = menus[activeTab];
-  useEffect(() => {
-    if (!meal) {
-      navigate("/meals");
-    }
-  }, [meal, navigate]);
 
   const handleOrder = () => {
     navigate("/recap", {
@@ -90,18 +85,6 @@ const MenuPage = () => {
       <Navbar name={patient ?? "No Patient"} />
       <div className="min-h-screen bg-[#f4f9fd] px-5 py-10 transition-colors duration-300 dark:bg-[#0a1520] sm:py-14">
         <div className="mx-auto max-w-7xl">
-          <motion.button
-            initial={{ opacity: 0, x: -16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.35 }}
-            onClick={() => navigate(-1)}
-            className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#ccdfe9] bg-white px-4 py-2 text-sm font-medium text-[#5c85a0] transition-all duration-200 hover:-translate-x-0.5 hover:border-[#2a7db5]/40 hover:bg-[#eaf4fb] dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#7a9baf] dark:hover:bg-[#0d1a26]"
-            style={{ WebkitTapHighlightColor: "transparent" }}
-          >
-            <ArrowLeft size={15} />
-            {t("back_to_meals")}
-          </motion.button>
-
           <motion.header
             className="mx-auto mb-10 max-w-2xl text-center sm:mb-14"
             initial={{ opacity: 0, y: -18 }}
@@ -138,9 +121,7 @@ const MenuPage = () => {
               <div className="mx-7 h-px bg-[#dde8f0] dark:bg-[#1a2d3e]" />
 
               <div className="px-7 pb-7 pt-5">
-                {/* ── Improved Tab bar ── */}
                 <div className="mb-6">
-                  {/* Tab pills row */}
                   <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
                     {menus.map((menu, idx) => {
                       const isActive = idx === activeTab;
@@ -166,7 +147,6 @@ const MenuPage = () => {
                             }
                           `}
                         >
-                          {/* Active indicator dot */}
                           {isActive && (
                             <motion.span
                               layoutId="tab-dot"
@@ -180,7 +160,6 @@ const MenuPage = () => {
                   </div>
                 </div>
 
-                {/* Section label */}
                 <div className="mb-3 flex items-center gap-2">
                   <ChefHat size={13} className="text-[#7a9baf]" />
                   <p className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-[#7a9baf]">
@@ -188,7 +167,6 @@ const MenuPage = () => {
                   </p>
                 </div>
 
-                {/* Course rows */}
                 <AnimatePresence mode="wait">
                   {activeMenu && (
                     <motion.div
@@ -215,7 +193,6 @@ const MenuPage = () => {
                   )}
                 </AnimatePresence>
 
-                {/* Order button */}
                 <motion.button
                   onClick={handleOrder}
                   whileHover={{ scale: 1.015 }}
@@ -229,6 +206,8 @@ const MenuPage = () => {
               </div>
             </motion.article>
           )}
+
+          <BackButton className="mx-auto mt-8" />
         </div>
       </div>
     </>
@@ -314,7 +293,7 @@ const NotFound = ({
     <p className="mt-1 text-sm font-light text-[#5c85a0] dark:text-[#7a9baf]">
       {t("no_menus_desc")}
     </p>
-    <button
+      <button
       onClick={onBack}
       className="mt-6 rounded-full border border-[#ccdfe9] bg-[#f4f9fd] px-5 py-2 text-sm font-semibold text-[#5c85a0] transition-all hover:border-[#2a7db5]/40 dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#7a9baf]"
     >
