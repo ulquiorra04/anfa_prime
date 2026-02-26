@@ -1,5 +1,5 @@
-import React from "react";
 import { useTranslation } from "react-i18next";
+import './Footer.scss';
 
 export default function Footer() {
   const { t } = useTranslation();
@@ -23,9 +23,7 @@ export default function Footer() {
             <span className="tracking-widest uppercase font-medium text-[10px]">
               {t("version")}
             </span>
-            <em className="not-italic font-bold text-[#2a7db5] tracking-wide">
-              1.0
-            </em>
+            <em className="not-italic font-bold text-[#2a7db5] tracking-wide"> { import.meta.env.VITE_VERSION } </em>
           </span>
         </div>
       </div>

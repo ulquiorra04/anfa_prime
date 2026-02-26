@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Utensils, ChefHat, Salad, CheckCircle } from "lucide-react";
 import { TAB_THEMES, type MenuDto } from "@/models/menu";
 import type { MealsDto } from "@/models/meal";
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/navbar/Navbar";
 import type { ResponseDto } from "@/models/response";
 import ErrorComponent from "@/components/error";
 import { useTranslation } from "react-i18next";

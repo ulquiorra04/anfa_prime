@@ -1,0 +1,4 @@
+.content-height {
+    height: calc(100%-130px);
+    overflow-y: scroll;
+}

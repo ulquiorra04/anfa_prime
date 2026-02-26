@@ -1,8 +1,9 @@
 import { useContext, useEffect } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
-import { Switch } from "./ui/switch";
+import { Switch } from "../ui/switch";
 import { Sun, Moon, Stethoscope, Globe } from "lucide-react"; 
-import { useTranslation } from "react-i18next"; 
+import { useTranslation } from "react-i18next";
+import './Navbar.scss';
 
 interface NavbarProps {
   name: string;

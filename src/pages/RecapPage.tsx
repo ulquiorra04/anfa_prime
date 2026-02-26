@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import type { RecapState } from "@/models/recap";
 import { generateRef, formatDate, formatTime } from "@/utils/helper";
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/navbar/Navbar";
 import { useTranslation } from "react-i18next";
 import CourseTag from "@/components/CourseTag";
 import InfoRow from "@/components/InfoRow";
