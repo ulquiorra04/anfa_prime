@@ -19,7 +19,7 @@ type Mode = "single" | "range";
 
 function OrderPage() {
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation(); // ✅ Fixed
+  const { t, i18n } = useTranslation();
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string>("");
@@ -30,9 +30,10 @@ function OrderPage() {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
+  const apiUrl = import.meta.env.VITE_DEBUG ? `data/sejour.json` : `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_HISTORY}`;
 
   useEffect(() => {
-document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
 
@@ -40,7 +41,7 @@ document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
     (async () => {
       try {
         setLoading(true);
-        const reponse = await fetch("data/sejour.json");
+        const reponse = await fetch(apiUrl);
         console.log(reponse);
         if (!reponse.ok) {
           setErrorMsg("Failed to fetch orders");
