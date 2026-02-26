@@ -8,7 +8,6 @@ interface NavbarProps {
   name: string;
 }
 
-
 export default function Navbar(props:NavbarProps) {
 
   const { t, i18n } = useTranslation(); 
@@ -42,7 +41,7 @@ document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
       <div className="mx-auto flex h-15 max-w-7xl items-center justify-between gap-4 px-5 md:h-17 md:px-8">
 
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#bdd9ee] bg-[#eaf4fb] dark:border-[#1e3d52] dark:bg-[#0e2233]">
+          <div className="flex h-14 w-9 shrink-0 items-center justify-center rounded-xl border border-[#bdd9ee] bg-[#eaf4fb] dark:border-[#1e3d52] dark:bg-[#0e2233]">
             <Stethoscope size={17} className="text-[#2a7db5]" strokeWidth={1.8} />
           </div>
 
@@ -66,7 +65,6 @@ document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
             <span className="text-xs font-bold uppercase text-[#5c85a0]">{i18n.language}</span>
           </button>
 
-          {/* Theme Switcher */}
           <div className="flex shrink-0 items-center gap-2 rounded-full border border-[#dde8f0] bg-[#f2f8fc] px-3 py-1.5 dark:border-[#1e2f3d] dark:bg-[#0e1e2b]">
             {darkMode ? <Moon size={13} className="text-[#7a9baf]" /> : <Sun size={13} className="text-[#2a7db5]" />}
             <span className="hidden text-xs font-medium text-[#5c85a0] dark:text-[#7a9baf] sm:block">
@@ -81,7 +79,7 @@ document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-1/2 h-0.5 w-10 -translate-x-1/2 rounded-t bg-linear-to-r from-[#64b6e0] to-[#2a7db5]" />
+      <div className="absolute bottom-0 left-1/2 h-0.5 w-45 -translate-x-1/2 rounded-t bg-linear-to-r from-[#64b6e0] to-[#2a7db5]" />
     </nav>
-  );
+  );  
 }

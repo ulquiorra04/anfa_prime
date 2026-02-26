@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Utensils, ChevronRight, ArrowLeft } from 'lucide-react';
-import { ThemeContext } from '../context/ThemeContext';
-import { CARD_ACCENTS, type MealsDto } from '@/models/meal';
-import { cardVariants, containerVariants } from '@/utils/motion';
-import ErrorComponent from '@/components/error';
-import Navbar from '@/components/Navbar';
-import type { ResponseDto } from '@/models/response';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Utensils, ChevronRight } from "lucide-react";
+import { ThemeContext } from "../context/ThemeContext";
+import { CARD_ACCENTS, type MealsDto } from "@/models/meal";
+import { cardVariants, containerVariants } from "@/utils/motion";
+import ErrorComponent from "@/components/error";
+import Navbar from "@/components/Navbar";
+import type { ResponseDto } from "@/models/response";
+import { useTranslation } from "react-i18next";
+import BackButton from "@/components/BackButton";
 
 const MealsPage = () => {
   const { t, i18n } = useTranslation();
@@ -23,24 +24,23 @@ const MealsPage = () => {
   const navigate = useNavigate();
   const themeContext = useContext(ThemeContext);
 
-  if (!themeContext) throw new Error('MealsPage must be used within a ThemeProvider');
+  if (!themeContext)
+    throw new Error("MealsPage must be used within a ThemeProvider");
 
   useEffect(() => {
-document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = i18n.language === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
 
   useEffect(() => {
     const fetchmeals = async () => {
       try {
-
         setLoading(true);
         const response = await fetch(apiUrl);
         if (!response.ok){
           setError(`Failed to fetch meals: ${response.status} ${response.statusText}`);
         } else {
           const mls: ResponseDto<MealsDto[]> = await response.json();
-          console.log(mls);
           if (mls.status === 0 || mls.status === -1) {
             setError(mls.message);
           } else {
@@ -49,7 +49,7 @@ document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
           }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load meals');
+        setError(err instanceof Error ? err.message : "Failed to load meals");
       } finally {
         setLoading(false);
       }
@@ -61,48 +61,34 @@ document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
     navigate(`/meal/${meal.id}`, { state: { meal } });
   };
 
-const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
-  if (e.key === 'Enter' || e.key === ' ') {
-    e.preventDefault();
-    handleMealsClick(meal);
+  const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleMealsClick(meal);
+    }
+  };
+  if (error) {
+    return (
+      <>
+        <Navbar name={patient ?? "NO Patient"} />
+        <ErrorComponent msg={error} />
+      </>
+    );
   }
-};
- if (error) {
-  return (
-    <>
-      <Navbar name={ patient ?? "NO Patient" } />
-      <ErrorComponent msg={error} />
-    </>
-  );
-}
   const colsClass =
     meals.length === 1
-      ? 'grid-cols-1 max-w-sm mx-auto'
+      ? "grid-cols-1 max-w-sm mx-auto"
       : meals.length === 2
-      ? 'grid-cols-1 md:grid-cols-2'
-      : meals.length === 4
-      ? 'grid-cols-1 md:grid-cols-2'
-      : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+        ? "grid-cols-1 md:grid-cols-2"
+        : meals.length === 4
+          ? "grid-cols-1 md:grid-cols-2"
+          : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
 
   return (
     <>
-      <Navbar name={ patient ?? "NO Patient" } />
+      <Navbar name={patient ?? "NO Patient"} />
       <div className="min-h-screen bg-[#f4f9fd] px-4 py-10 transition-colors duration-300 dark:bg-[#0a1520] sm:px-5 sm:py-14">
         <div className="mx-auto max-w-7xl">
-          {/* Back button */}
-          <motion.button
-            initial={{ opacity: 0, x: -16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            onClick={() => navigate('/')}
-            className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#ccdfe9] bg-white px-4 py-2 text-sm font-medium text-[#5c85a0] transition-all duration-200 hover:-translate-x-0.5 hover:border-[#2a7db5]/40 hover:bg-[#eaf4fb] active:scale-95 dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#7a9baf] dark:hover:bg-[#0d1a26]"
-            style={{ WebkitTapHighlightColor: 'transparent' }}
-          >
-            <ArrowLeft size={15} />
-            {t('back_to_orders')}
-          </motion.button>
-
-          {/* Header */}
           <motion.header
             className="mx-auto mb-10 max-w-2xl text-center sm:mb-14"
             initial={{ opacity: 0, y: -18 }}
@@ -111,16 +97,15 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
           >
             <div className="mb-3 inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#5c85a0] dark:text-[#7a9baf]">
               <Utensils size={13} className="text-[#2a7db5]" />
-              {t('todays_menu')}
+              {t("todays_menu")}
             </div>
             <h1 className="mb-3 text-[clamp(2.2rem,6vw,3.8rem)] font-bold leading-[1.1] text-[#0d2233] dark:text-[#ddeef7]">
-              {t('choose_your')}{' '}
-              <em className="italic text-[#2a7db5]">{t('meal')}</em>
+              {t("choose_your")}{" "}
+              <em className="italic text-[#2a7db5]">{t("meal")}</em>
             </h1>
             <div className="mx-auto mt-4 h-0.5 w-12 rounded bg-[#2a7db5]" />
           </motion.header>
 
-          {/* Skeleton grid while loading */}
           {loading ? (
             <div className={`grid gap-5 ${colsClass} lg:gap-7`}>
               {[...Array(4)].map((_, i) => (
@@ -146,12 +131,18 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
                     variants={cardVariants}
                     className="group relative flex flex-col overflow-hidden rounded-2xl border border-[#ccdfe9] bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#2a7db5]/40 hover:shadow-xl dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:hover:border-[#2a7db5]/30 dark:hover:shadow-black/40"
                   >
-                    <div className={`h-1 w-full bg-linear-to-r ${accent.bar}`} />
+                    <div
+                      className={`h-1 w-full bg-linear-to-r ${accent.bar}`}
+                    />
                     <div className="flex items-center gap-3 px-5 pb-4 pt-5">
                       <div
                         className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${accent.iconBg} ${accent.iconBorder} transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3`}
                       >
-                        <Utensils size={20} className={accent.iconColor} strokeWidth={1.8} />
+                        <Utensils
+                          size={20}
+                          className={accent.iconColor}
+                          strokeWidth={1.8}
+                        />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-[#7a9baf]">
@@ -169,7 +160,7 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
                       <motion.button
                         key={cat.id}
                         type="button"
-                        aria-label={`${t('select')} ${cat.name}`}
+                        aria-label={`${t("select")} ${cat.name}`}
                         onClick={() => handleMealsClick(cat)}
                         onTouchStart={() => setPressedId(String(cat.id))}
                         onTouchEnd={() => setPressedId(null)}
@@ -190,21 +181,21 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
                           dark:hover:border-[#2a7db5]/40 dark:hover:bg-[#0f2235]
                           focus-visible:ring-2 focus-visible:ring-[#2a7db5] focus-visible:ring-offset-2
                           dark:focus-visible:ring-offset-[#0a1520]
-                          ${pressedId === String(cat.id) ? 'bg-[#e4f1f9] border-[#2a7db5]/60 dark:bg-[#0c1e30]' : ''}
+                          ${pressedId === String(cat.id) ? "bg-[#e4f1f9] border-[#2a7db5]/60 dark:bg-[#0c1e30]" : ""}
                         `}
-                        style={{ WebkitTapHighlightColor: 'transparent' }}
+                        style={{ WebkitTapHighlightColor: "transparent" }}
                       >
                         <span
                           className={`
                             absolute left-0 top-0 h-full w-0.75 rounded-r-full
                             bg-[#2a7db5] transition-transform duration-150 origin-left
-                            ${pressedId === String(cat.id) ? 'scale-x-100' : 'scale-x-0'}
+                            ${pressedId === String(cat.id) ? "scale-x-100" : "scale-x-0"}
                             group-hover/item:scale-x-100
                           `}
                         />
                         <span className="truncate pl-1 pr-3">
-                        {t('view_meals', { name: cat.name })}
-                      </span>
+                          {t("view_meals", { name: cat.name })}
+                        </span>
                         <ChevronRight
                           size={18}
                           className="
@@ -221,8 +212,9 @@ const handleKeyDown = (e: React.KeyboardEvent, meal: MealsDto) => {
               })}
             </motion.div>
           )}
+          <BackButton className="mx-auto mt-8" />
         </div>
-      </div>    
+      </div>
     </>
   );
 };
