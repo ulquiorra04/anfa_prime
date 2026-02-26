@@ -18,6 +18,7 @@ const MealsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [patient, setPatient] = useState<string | null>(null);
+  const apiUrl = import.meta.env.VITE_DEBUG ? `data/meals.json` : `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_MEALS}`;
 
   const [pressedId, setPressedId] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -35,11 +36,9 @@ const MealsPage = () => {
     const fetchmeals = async () => {
       try {
         setLoading(true);
-        const response = await fetch("data/meals.json");
-        if (!response.ok) {
-          setError(
-            `Failed to fetch meals: ${response.status} ${response.statusText}`,
-          );
+        const response = await fetch(apiUrl);
+        if (!response.ok){
+          setError(`Failed to fetch meals: ${response.status} ${response.statusText}`);
         } else {
           const mls: ResponseDto<MealsDto[]> = await response.json();
           if (mls.status === 0 || mls.status === -1) {
