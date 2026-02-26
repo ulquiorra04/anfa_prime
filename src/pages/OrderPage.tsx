@@ -30,7 +30,7 @@ function OrderPage() {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
-  const apiUrl = import.meta.env.VITE_DEBUG ? `data/sejour.json` : `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_HISTORY}`;
+  const apiUrl = (import.meta.env.VITE_DEBUG === 'true') ? `data/sejour.json` : `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_HISTORY}`;
 
   useEffect(() => {
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
