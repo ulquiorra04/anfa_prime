@@ -44,21 +44,15 @@ const RecapPage = () => {
     if (confirmStatus === "loading" || confirmStatus === "success") return;
 
     const payload = {
-      reference: ref,
-      username,
-      meal_id: meal?.id,
-      meal_name: meal?.name,
-      menu_id: menu?.id,
-      menu_name: menu?.name,
-      menu_body: menu?.body,
-      ordered_at: new Date().toISOString(),
+      sejour_id: 55,
+      menu_id: 2
     };
 
     try {
       setConfirmStatus("loading");
       setErrorMessage("");
 
-      const response = await fetch("/order", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_POST_ORDER}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
