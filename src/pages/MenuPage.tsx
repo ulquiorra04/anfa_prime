@@ -18,6 +18,7 @@ const MenuPage = () => {
   const [menus, setMenus] = useState<MenuDto[]>([]);
   const [activeMenu, setActiveMenu] = useState<MenuDto | null>(null);
   const [activeTab, setActiveTab] = useState(0);
+  const apiUrl = (import.meta.env.VITE_DEBUG === 'true') ? `../data/menus.json` : `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_MENU}`;
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,10 +36,10 @@ const MenuPage = () => {
     const load = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`../data/menus.json`);
+        const response = await fetch(apiUrl);
         if (!response.ok) {
           setError(
-            `Failed to fetch meals: ${response.status} ${response.statusText}`,
+            `Failed to fetch menus: ${response.status} ${response.statusText}`,
           );
         } else {
           const mns: ResponseDto<MenuDto[]> = await response.json();
