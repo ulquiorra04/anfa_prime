@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import type { OrderDto } from "../models/order";
 import {
@@ -41,13 +41,14 @@ function OrderPage() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [sejour, setSejour] = useState<sejourDto | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  
 
   const [calOpen, setCalOpen] = useState(false);
   const [calMode, setCalMode] = useState<Mode>("single");
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
-  const apiUrl = (import.meta.env.VITE_DEBUG === 'true') ? `data/sejour.json` : `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_HISTORY}`;
 
   /**
    * Smart calendar positioning using JS-measured bounding rect.
@@ -102,7 +103,15 @@ function OrderPage() {
   useEffect(() => {
     (async () => {
       try {
+
+        if(!searchParams.has('sejour_id')) {
+          setErrorMsg(`An error occurred while loading your orders. Please make sure you accessed the app through the correct link provided by your hospital.`);
+          setLoading(false);
+          return;
+        }
+
         setLoading(true);
+        const apiUrl = (import.meta.env.VITE_DEBUG === 'true') ? `data/sejour.json` : `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_HISTORY}?sejour_id=${searchParams.get('sejour_id')}`;
         const reponse = await fetch(apiUrl);
         console.log(reponse);
         if (!reponse.ok) {
@@ -112,6 +121,7 @@ function OrderPage() {
           setOrders(sj.data?.orders ?? []);
           setSejour(sj.data ?? null);
           localStorage.setItem("patient", sj.data?.name ?? "");
+          localStorage.setItem("sejourId", searchParams.get('sejour_id') ?? "");
         }
       } catch (e) {
         console.error("Error loading orders:", e);

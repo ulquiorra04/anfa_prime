@@ -19,7 +19,7 @@ const MealsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [patient, setPatient] = useState<string | null>(null);
-  const apiUrl = (import.meta.env.VITE_DEBUG === 'true') ? `data/meals.json` : `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_MEALS}`;
+  
 
   const [pressedId, setPressedId] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -36,7 +36,15 @@ const MealsPage = () => {
   useEffect(() => {
     const fetchmeals = async () => {
       try {
+        // Get Sejour ID from localStorage (set in OrderPage) and use it to fetch meals
+        if (!localStorage.getItem("sejourId")) {
+          setError("No sejour ID found. Please access the app through the correct link provided by your hospital.");
+          setLoading(false);
+          return;
+        }
+
         setLoading(true);
+        const apiUrl = (import.meta.env.VITE_DEBUG === 'true') ? `data/meals.json` : `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_MEALS}?sejour_id=${localStorage.getItem("sejourId")}`;
         const response = await fetch(apiUrl);
         if (!response.ok){
           setError(`Failed to fetch meals: ${response.status} ${response.statusText}`);

@@ -18,7 +18,7 @@ const MenuPage = () => {
   const [menus, setMenus] = useState<MenuDto[]>([]);
   const [activeMenu, setActiveMenu] = useState<MenuDto | null>(null);
   const [activeTab, setActiveTab] = useState(0);
-  const apiUrl = (import.meta.env.VITE_DEBUG === 'true') ? `../data/menus.json` : `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_MENU}`;
+  
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,6 +35,14 @@ const MenuPage = () => {
   useEffect(() => {
     const load = async () => {
       try {
+
+        if(meal === undefined) {
+          setError("No meal information found. Please access the menu through the correct flow starting from the meals page.");
+          setLoading(false);
+          return;
+        }
+
+        const apiUrl = (import.meta.env.VITE_DEBUG === 'true') ? `../data/menus.json` : `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_MENU}?type_id=${meal.id}`;
         setLoading(true);
         const response = await fetch(apiUrl);
         if (!response.ok) {

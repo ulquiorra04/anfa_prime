@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   CheckCircle,
@@ -20,14 +20,15 @@ import CourseTag from "@/components/CourseTag";
 import InfoRow from "@/components/InfoRow";
 import SectionHeader from "@/components/SectionHeader";
 import Footer from "@/components/footer/Footer";
+import ErrorComponent from "@/components/error";
 
 const RecapPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as RecapState | undefined;
+  const [patient, setPatient] = useState<string|null>(null);
   const { t } = useTranslation();
 
-  const username = localStorage.getItem("patient") || "Patient";
   const meal = state?.meal;
   const menu = state?.menu;
 
@@ -44,8 +45,8 @@ const RecapPage = () => {
     if (confirmStatus === "loading" || confirmStatus === "success") return;
 
     const payload = {
-      sejour_id: 55,
-      menu_id: 2
+      sejour_id: localStorage.getItem('sejourId'),
+      menu_id: menu?.id
     };
 
     try {
@@ -72,10 +73,32 @@ const RecapPage = () => {
     }
   };
 
+  useEffect(() => {
+    const checkPrerequested = () => {
+      if(!localStorage.getItem('sejourId') || !localStorage.getItem('patient')) {
+        setErrorMessage(`No sejour ID found. Please access the app through the correct link provided by your hospital.`);
+        return;
+      }
+
+      setPatient(localStorage.getItem("patient"));
+    }
+
+    checkPrerequested();
+  }, []);
+
+  if(errorMessage) {
+    return (
+      <>
+        <ErrorComponent msg={errorMessage} />;
+      </>
+    );
+  }
+
+
   return (
     <>
       <div className="flex flex-col h-full">
-        <Navbar name={username} />
+        <Navbar name={patient ?? ""} />
         <div className="content-height bg-[#f4f9fd] px-5 py-5 transition-colors duration-300 dark:bg-[#0a1520] sm:py-14">
           <div className="mx-auto max-w-xl">
             {/* ── Success banner ── */}
@@ -172,7 +195,7 @@ const RecapPage = () => {
             {/* ── Action buttons ── */}
             <div className="mt-6 grid grid-cols-2 gap-3">
               <button
-                onClick={() => navigate("/")}
+                onClick={() => navigate(`/?sejour_id=${localStorage.getItem('sejourId')}`)}
                 className="flex items-center justify-center gap-2 rounded-xl border border-[#ccdfe9] bg-white py-3.5 text-sm font-bold text-[#05668d] shadow-sm transition-all duration-200 hover:scale-[1.01] hover:border-[#05668d]/30 hover:bg-[#f0f9fd] active:scale-[0.99] dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#29e3fc] dark:hover:bg-[#0a1a2a]"
               >
                 <Home size={15} />
