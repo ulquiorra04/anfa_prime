@@ -4,13 +4,13 @@ import MealPage from "./pages/MealsPage";
 import MenuPage from "./pages/MenuPage";
 import RecapPage from "./pages/RecapPage";
 import NotFound from "./pages/NotFound";
-import Footer from "./components/Footer";
+import './App.css';
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
+    <div className="h-full bg-gray-100 dark:bg-gray-900">
       <Router>
-        <div className="flex-1">
+        <div className="h-full">
           <Routes>
             <Route path="/" element={<OrderPage />} />
             <Route path="/meal" element={<MealPage />} />
@@ -19,7 +19,6 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
-        <Footer />
       </Router>
     </div>
   );
