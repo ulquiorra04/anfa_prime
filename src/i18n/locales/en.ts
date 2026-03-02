@@ -66,6 +66,16 @@ export const en = {
     title: "Page Not Found",
     description: "The page you're looking for doesn't exist or has been moved.",
     goBack: "Go Back",
-  
+    label: "English",
+    flag: "🇬🇧",
+    titleError: "Something went",
+    titleAccent: "wrong",
+    support: "Contact",
+    supportLink: "support",
+    supportSuffix: "if this persists",
+    home: "Go Home",
+    retry: "Retry",
+    errorLabel: "Error details",
+    code: "ERR",
   },
 };
