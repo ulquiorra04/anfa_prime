@@ -65,6 +65,7 @@ const RecapPage = () => {
       }
 
       setConfirmStatus("success");
+      navigate(`/?sejour_id=${localStorage.getItem('sejourId')}`);
     } catch (err) {
       setConfirmStatus("error");
       setErrorMessage(

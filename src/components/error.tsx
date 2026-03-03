@@ -2,7 +2,13 @@ import { motion } from "framer-motion";
 import { AlertTriangle, Home } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-function ErrorComponent() {
+interface ErrorComponentPros {
+  msg?: string 
+}
+
+function ErrorComponent(
+  props: ErrorComponentPros
+) {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.dir() === "rtl";
 
@@ -35,7 +41,8 @@ function ErrorComponent() {
         </div>
 
         {/* Title */}
-        <motion.h2
+        {
+          !props.msg && <motion.h2
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
@@ -48,6 +55,20 @@ function ErrorComponent() {
             </em>
           </span>
         </motion.h2>
+        }
+
+        {
+          props.msg && (
+            <motion.h2
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+              className="mb-4 text-[1.3rem] font-black leading-tight tracking-tight text-[#ff0040ef] sm:mb-5 sm:text-[1.5rem] md:text-[1.6rem] dark:text-[#f08080]"
+            >
+              { props.msg }
+            </motion.h2>
+          )
+        }
 
         <motion.p
           initial={{ opacity: 0 }}
