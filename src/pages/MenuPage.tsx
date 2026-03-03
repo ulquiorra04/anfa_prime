@@ -67,7 +67,7 @@ const MenuPage = () => {
     };
 
     load();
-  }, [menusFromState]);
+  }, [menusFromState, meal, activeTab]);
 
   const theme = TAB_THEMES[activeTab] ?? TAB_THEMES[0];
   //const activeMenu = menus[activeTab];
@@ -84,7 +84,7 @@ const MenuPage = () => {
   if (error) {
     return (
       <>
-        <ErrorComponent msg={error} />
+        <ErrorComponent />
       </>
     );
   }
@@ -138,7 +138,7 @@ const MenuPage = () => {
                         const tabTheme = TAB_THEMES[idx] ?? TAB_THEMES[0];
                         return (
                           <button
-                            key={menu.id}
+                            key={menu.menu_id}
                             onClick={() => {
                               setActiveTab(idx);
                               setActiveMenu(menu);
@@ -191,6 +191,7 @@ const MenuPage = () => {
                           return (
                             <>
                               <CourseRow
+                                    key={`${activeMenu.menu_id}-${idx}`} // Add a key here
                                 icon={Salad}
                                 label={`${t("dish")} ${idx + 1}`}
                                 value={el}
@@ -288,9 +289,7 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-const NotFound = ({
-  onBack,
-  t,
+const NotFound = ({  t,
 }: {
   onBack: () => void;
   t: (key: string) => string;
@@ -305,12 +304,6 @@ const NotFound = ({
     <p className="mt-1 text-sm font-light text-[#5c85a0] dark:text-[#7a9baf]">
       {t("no_menus_desc")}
     </p>
-      <button
-      onClick={onBack}
-      className="mt-6 rounded-full border border-[#ccdfe9] bg-[#f4f9fd] px-5 py-2 text-sm font-semibold text-[#5c85a0] transition-all hover:border-[#2a7db5]/40 dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#7a9baf]"
-    >
-      ← {t("back_to_meals")}
-    </button>
   </div>
 );
 
