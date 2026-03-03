@@ -80,7 +80,7 @@ const MealsPage = () => {
     return (
       <>
         <Navbar name={patient ?? "NO Patient"} />
-        <ErrorComponent msg={error} />
+        <ErrorComponent />
       </>
     );
   }
@@ -155,9 +155,7 @@ const MealsPage = () => {
                             />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-[#7a9baf]">
-                              #{cat.id}
-                            </p>
+                          
                             <h2 className="text-xl font-bold leading-tight text-[#0d2233] dark:text-[#ddeef7]">
                               {cat.name}
                             </h2>
