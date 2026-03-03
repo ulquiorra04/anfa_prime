@@ -16,6 +16,12 @@ import {
   Pizza,
   CalendarDays,
   X,
+  UtensilsCrossed,
+  CalendarClock,
+  ChefHat,
+  ListChecks,
+  ArrowLeft,
+  AlertCircle,
 } from "lucide-react";
 import { DrillCalendar } from "@/components/DrillCalender";
 import { isSameDay, toDate } from "date-fns";
@@ -31,6 +37,7 @@ import Navbar from "@/components/navbar/Navbar";
 import type { sejourDto } from "@/models/sejour";
 import { useTranslation } from "react-i18next";
 import Footer from "@/components/footer/Footer";
+import SkeletonCard from "@/components/SkeletonCard";
 
 type Mode = "single" | "range";
 
@@ -42,37 +49,24 @@ function OrderPage() {
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [sejour, setSejour] = useState<sejourDto | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
-  
+  const [selectedOrder, setSelectedOrder] = useState<OrderDto | null>(null);
 
   const [calOpen, setCalOpen] = useState(false);
   const [calMode, setCalMode] = useState<Mode>("single");
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
-
-  /**
-   * Smart calendar positioning using JS-measured bounding rect.
-   * The dropdown is rendered as `position: fixed` so it escapes any
-   * overflow:hidden / stacking context issues. Coordinates are computed
-   * from the filter button's rect and clamped to always stay inside the
-   * visible viewport — works on mobile, tablet, and large TV screens.
-   */
   const filterBtnRef = useRef<HTMLButtonElement>(null);
   const [calStyle, setCalStyle] = useState<React.CSSProperties>({});
 
   const computeCalStyle = useCallback(() => {
     if (!filterBtnRef.current) return;
     const CAL_W = 300;
-    const MARGIN = 8; // px gap between button bottom and dropdown top
+    const MARGIN = 8;
     const rect = filterBtnRef.current.getBoundingClientRect();
     const viewW = window.innerWidth;
-
-    // Ideal position: right edge of dropdown aligns with right edge of button
     let left = rect.right - CAL_W;
-
-    // Clamp: never clip left or right edge (keep 8px safe margin each side)
     left = Math.max(8, Math.min(left, viewW - CAL_W - 8));
-
     setCalStyle({
       position: "fixed",
       top: rect.bottom + MARGIN,
@@ -83,11 +77,10 @@ function OrderPage() {
   }, []);
 
   const handleOpenCal = () => {
-    if (!calOpen) computeCalStyle(); // measure before opening
+    if (!calOpen) computeCalStyle();
     setCalOpen((v) => !v);
   };
 
-  // Recompute on window resize while open
   useEffect(() => {
     if (!calOpen) return;
     const onResize = () => computeCalStyle();
@@ -96,24 +89,26 @@ function OrderPage() {
   }, [calOpen, computeCalStyle]);
 
   useEffect(() => {
-    document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = i18n.language === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
 
   useEffect(() => {
     (async () => {
       try {
-
-        if(!searchParams.has('sejour_id')) {
-          setErrorMsg(`An error occurred while loading your orders. Please make sure you accessed the app through the correct link provided by your hospital.`);
+        if (!searchParams.has("sejour_id")) {
+          setErrorMsg(
+            `An error occurred while loading your orders. Please make sure you accessed the app through the correct link provided by your hospital.`,
+          );
           setLoading(false);
           return;
         }
-
         setLoading(true);
-        const apiUrl = (import.meta.env.VITE_DEBUG === 'true') ? `data/sejour.json` : `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_HISTORY}?sejour_id=${searchParams.get('sejour_id')}`;
+        const apiUrl =
+          import.meta.env.VITE_DEBUG === "true"
+            ? `data/sejour.json`
+            : `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_HISTORY}?sejour_id=${searchParams.get("sejour_id")}`;
         const reponse = await fetch(apiUrl);
-        console.log(reponse);
         if (!reponse.ok) {
           setErrorMsg("Failed to fetch orders");
         } else {
@@ -121,7 +116,7 @@ function OrderPage() {
           setOrders(sj.data?.orders ?? []);
           setSejour(sj.data ?? null);
           localStorage.setItem("patient", sj.data?.name ?? "");
-          localStorage.setItem("sejourId", searchParams.get('sejour_id') ?? "");
+          localStorage.setItem("sejourId", searchParams.get("sejour_id") ?? "");
         }
       } catch (e) {
         console.error("Error loading orders:", e);
@@ -198,28 +193,24 @@ function OrderPage() {
       number,
       { classes: string; icon: React.ReactNode; label: string }
     > = {
-      /** 0 — Pending: patient submitted, awaiting kitchen validation */
       0: {
         classes:
           "bg-[#fef9ec] text-[#b07d12] border-[#f5dfa0] dark:bg-[#221a03] dark:text-[#f5c842] dark:border-[#3d2f06]",
         icon: <Clock className="w-3 h-3" />,
         label: t("status_pending"),
       },
-      /** 1 — In process: received by kitchen */
       1: {
         classes:
           "bg-[#eaf4fb] text-[#1e6fa0] border-[#b3d6ed] dark:bg-[#0a1e2d] dark:text-[#64b6e0] dark:border-[#0f2e44]",
         icon: <Utensils className="w-3 h-3" />,
         label: t("status_in_process"),
       },
-      /** 2 — Ready: sent / delivered to patient */
       2: {
         classes:
           "bg-[#eaf7f1] text-[#1a8c5b] border-[#b3e2cf] dark:bg-[#0a2318] dark:text-[#4dd9a0] dark:border-[#0f3d28]",
         icon: <CheckCircle className="w-3 h-3" />,
         label: t("status_ready"),
       },
-      /** 3 — Canceled: rejected by nutritionist */
       3: {
         classes:
           "bg-[#fdf0f0] text-[#b03a3a] border-[#f0c0c0] dark:bg-[#2a0d0d] dark:text-[#f08080] dark:border-[#3d1515]",
@@ -272,396 +263,545 @@ function OrderPage() {
     };
   };
 
-  const SkeletonCard = () => (
-    <div className="animate-pulse overflow-hidden rounded-2xl border border-[#ccdfe9] bg-white dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">
-      <div className="h-0.5 w-full bg-[#dde8f0] dark:bg-[#1a2d3e]" />
-      <div className="flex items-center gap-3 p-5">
-        <div className="h-10 w-10 rounded-xl bg-[#e6f0f8] dark:bg-[#0e1e2d]" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 w-1/3 rounded bg-[#e6f0f8] dark:bg-[#0e1e2d]" />
-          <div className="h-3 w-1/2 rounded bg-[#e6f0f8] dark:bg-[#0e1e2d]" />
-        </div>
-        <div className="h-6 w-20 rounded-full bg-[#e6f0f8] dark:bg-[#0e1e2d]" />
-      </div>
-    </div>
-  );
-
   if (errorMsg) {
-    return <ErrorComponent msg={errorMsg} />;
+    return <ErrorComponent />;
   }
 
   return (
     <>
       <div className="flex flex-col h-full">
         <Navbar name={sejour?.name ?? "Your Menu"} />
-          <div className="content-height flex-2 bg-[#f4f9fd] px-4 py-10 transition-colors duration-300 dark:bg-[#0a1520] sm:px-5 sm:py-14">
-            <div className="mx-auto max-w-3xl">
-              <motion.header
-                className="mb-8"
-                initial={{ opacity: 0, y: -16 }}
+        <div className="content-height flex-2 bg-[#f4f9fd] px-4 py-10 transition-colors duration-300 dark:bg-[#0a1520] sm:px-5 sm:py-14">
+          <div className="mx-auto max-w-3xl">
+            <motion.header
+              className="mb-8"
+              initial={{ opacity: 0, y: -16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div className="flex flex-col gap-4">
+                <div className="inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#5c85a0] dark:text-[#7a9baf]">
+                  <ClipboardList size={13} className="text-[#2a7db5]" />
+                  {t("your_orders")}
+                </div>
+
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.1] text-[#0d2233] dark:text-[#ddeef7] mr-auto">
+                    {t("meal")}{" "}
+                    <em className="italic text-[#2a7db5]">{t("history")}</em>
+                  </h1>
+
+                  {!loading && orders.length > 0 && (
+                    <div className="relative flex items-center shrink-0">
+                      <button
+                        ref={filterBtnRef}
+                        onClick={handleOpenCal}
+                        style={{ WebkitTapHighlightColor: "transparent" }}
+                        className={`
+                          flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold
+                          transition-all duration-200 max-w-45 sm:max-w-50
+                          ${
+                            calOpen || hasFilter
+                              ? "border-[#2a7db5] bg-[#2a7db5] text-white shadow-md"
+                              : "border-[#ccdfe9] bg-white text-[#5c85a0] hover:border-[#2a7db5]/40 hover:bg-[#eaf4fb] hover:text-[#2a7db5] dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#7a9baf]"
+                          }
+                        `}
+                      >
+                        <CalendarDays size={14} className="shrink-0" />
+                        <span className="truncate">
+                          {filterLabel ?? t("filter")}
+                        </span>
+                        {hasFilter && (
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              clearFilter();
+                              setCalOpen(false);
+                            }}
+                            className="ml-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/25 hover:bg-white/40"
+                          >
+                            <X size={10} />
+                          </span>
+                        )}
+                      </button>
+
+                      <AnimatePresence>
+                        {calOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                            transition={{ duration: 0.16, ease: "easeOut" }}
+                            style={calStyle}
+                          >
+                            <div className="mb-2 flex rounded-xl border border-[#ccdfe9] bg-white p-1 shadow-sm dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">
+                              {(["single", "range"] as Mode[]).map((m) => (
+                                <button
+                                  key={m}
+                                  onClick={() => {
+                                    setCalMode(m);
+                                    setSelectedDay(null);
+                                    setRangeStart(null);
+                                    setRangeEnd(null);
+                                  }}
+                                  style={{
+                                    WebkitTapHighlightColor: "transparent",
+                                  }}
+                                  className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all duration-150
+                                    ${calMode === m ? "bg-[#2a7db5] text-white shadow-sm" : "text-[#7a9baf] hover:text-[#5c85a0] dark:hover:text-[#ddeef7]"}`}
+                                >
+                                  {m === "single"
+                                    ? t("cal_day")
+                                    : t("cal_period")}
+                                </button>
+                              ))}
+                            </div>
+                            <DrillCalendar
+                              mode={calMode}
+                              selected={selectedDay}
+                              rangeStart={rangeStart}
+                              rangeEnd={rangeEnd}
+                              onSelectSingle={setSelectedDay}
+                              onSelectRange={(s, e) => {
+                                setRangeStart(s);
+                                setRangeEnd(e);
+                              }}
+                              activeDates={activeDates}
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
+
+                  {!loading && grouped.length > 0 && (
+                    <motion.button
+                      onClick={() => navigate("/meal")}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="hidden sm:flex items-center gap-2 rounded-xl bg-[#2a7db5] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#2a7db5]/20 transition-colors hover:bg-[#1e6fa0] shrink-0"
+                      style={{ WebkitTapHighlightColor: "transparent" }}
+                    >
+                      <Plus size={16} strokeWidth={2.5} />
+                      {t("new_order")}
+                    </motion.button>
+                  )}
+                </div>
+
+                <div className="h-0.5 w-12 rounded bg-[#2a7db5]" />
+
+                {calOpen && (
+                  <div
+                    className="fixed inset-0 z-9998"
+                    onClick={() => setCalOpen(false)}
+                  />
+                )}
+              </div>
+            </motion.header>
+
+            {/* ── Empty state ── */}
+            {!loading && orders.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.5 }}
+                className="flex flex-col items-center justify-center py-16 text-center"
               >
-                <div className="flex flex-col gap-4">
-                  {/* Top label */}
-                  <div className="inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#5c85a0] dark:text-[#7a9baf]">
-                    <ClipboardList size={13} className="text-[#2a7db5]" />
-                    {t("your_orders")}
+                <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-2xl border border-[#ccdfe9] bg-white shadow-sm dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">
+                  <Utensils
+                    size={32}
+                    className="text-[#2a7db5]"
+                    strokeWidth={1.5}
+                  />
+                </div>
+                <p className="text-2xl font-bold text-[#0d2233] dark:text-[#ddeef7]">
+                  {t("no_orders_yet")}
+                </p>
+                <p className="mt-2 max-w-xs text-sm font-light text-[#5c85a0] dark:text-[#7a9baf]">
+                  {t("no_orders_desc")}
+                </p>
+                <motion.button
+                  onClick={() => navigate("/meal")}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="mt-6 flex items-center gap-2 rounded-xl bg-[#2a7db5] px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#2a7db5]/25 transition-colors hover:bg-[#1e6fa0]"
+                  style={{ WebkitTapHighlightColor: "transparent" }}
+                >
+                  <Sparkles size={15} />
+                  {t("browse_menu")}
+                  <ChevronRight size={15} />
+                </motion.button>
+              </motion.div>
+            ) : loading ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <SkeletonCard key={i} />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-5">
+                <AnimatePresence>
+                  {grouped.length === 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.5 }}
+                      className="flex flex-col items-center justify-center py-16 text-center"
+                    >
+                      <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-2xl border border-[#ccdfe9] bg-white shadow-sm dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">
+                        <Utensils
+                          size={32}
+                          className="text-[#2a7db5]"
+                          strokeWidth={1.5}
+                        />
+                      </div>
+                      <p className="text-2xl font-bold text-[#0d2233] dark:text-[#ddeef7]">
+                        {hasFilter
+                          ? t("no_orders_filtered")
+                          : t("no_orders_yet")}
+                      </p>
+                      <p className="mt-2 max-w-xs text-sm font-light text-[#5c85a0] dark:text-[#7a9baf]">
+                        {hasFilter
+                          ? t("no_orders_filtered_desc")
+                          : t("no_orders_desc")}
+                      </p>
+                      {!hasFilter && (
+                        <motion.button
+                          onClick={() => navigate("/meal")}
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          className="mt-6 flex items-center gap-2 rounded-xl bg-[#2a7db5] px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#2a7db5]/25 transition-colors hover:bg-[#1e6fa0]"
+                          style={{ WebkitTapHighlightColor: "transparent" }}
+                        >
+                          <Sparkles size={15} />
+                          {t("browse_menu")}
+                          <ChevronRight size={15} />
+                        </motion.button>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <motion.div
+                  key={`grp-${calMode}-${selectedDay?.getTime() ?? 0}-${rangeStart?.getTime() ?? 0}-${rangeEnd?.getTime() ?? 0}`}
+                  className="flex flex-col gap-6"
+                  initial="hidden"
+                  animate="show"
+                  variants={{
+                    hidden: {},
+                    show: { transition: { staggerChildren: 0.07 } },
+                  }}
+                >
+                  {grouped.map(({ label, orders: dayOrders }) => (
+                    <motion.section
+                      key={label}
+                      variants={{
+                        hidden: { opacity: 0, y: 14 },
+                        show: {
+                          opacity: 1,
+                          y: 0,
+                          transition: {
+                            duration: 0.38,
+                            ease: [0.22, 1, 0.36, 1],
+                          },
+                        },
+                      }}
+                    >
+                      <div className="mb-2.5 flex items-center gap-3">
+                        <span className="text-xs font-bold capitalize text-[#5c85a0] dark:text-[#7a9baf]">
+                          {label}
+                        </span>
+                        <div className="h-px flex-1 bg-[#dde8f0] dark:bg-[#1a2d3e]" />
+                        <span className="text-[0.6rem] font-semibold text-[#7a9baf]">
+                          {dayOrders.length} {t("meals_count")}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        {dayOrders.map((order) => {
+                          const sc = getStatusConfig(order.status);
+                          const meal = getMealMeta(order.meal.name);
+                          const isSelected =
+                            selectedOrder?.commande_id === order.commande_id;
+                          return (
+                            <article
+                              key={order.commande_id}
+                              onClick={() =>
+                                setSelectedOrder(isSelected ? null : order)
+                              }
+                              className={`group overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg dark:bg-[#0d1e2d] cursor-pointer
+                                ${
+                                  isSelected
+                                    ? "border-[#2a7db5] shadow-[#2a7db5]/15 dark:border-[#2a7db5]"
+                                    : "border-[#ccdfe9] hover:border-[#2a7db5]/40 dark:border-[#1a2d3e]"
+                                }`}
+                            >
+                              <div
+                                className={`h-0.5 w-full bg-linear-to-r ${meal.bar}`}
+                              />
+                              <div className="flex items-center gap-3 px-5 py-4">
+                                <div
+                                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 ${meal.color}`}
+                                >
+                                  {meal.icon}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <span
+                                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide ${meal.color}`}
+                                  >
+                                    {meal.label}
+                                  </span>
+                                  <h3 className="mt-0.5 truncate text-sm font-bold leading-tight text-[#0d2233] dark:text-[#ddeef7] sm:text-base">
+                                    {order.meal.name}
+                                  </h3>
+                                  <p className="truncate text-xs font-light text-[#5c85a0] dark:text-[#7a9baf]">
+                                    {t("menu_label")} :{" "}
+                                    <span className="font-medium text-[#0d2233] dark:text-[#ddeef7]">
+                                      {order.menu.name}
+                                    </span>
+                                  </p>
+                                </div>
+                                <div className="flex shrink-0 flex-col items-end gap-1.5">
+                                  <span
+                                    className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${sc.classes}`}
+                                  >
+                                    {sc.icon}
+                                    {sc.label}
+                                  </span>
+                                  <span className="rounded-lg border border-[#e2edf5] bg-[#f8fbfd] px-2.5 py-1 font-mono text-[0.65rem] font-medium text-[#2a7db5] dark:border-[#1a2d3e] dark:bg-[#0a1520] dark:text-[#5b9ec9]">
+                                    {formatTime(order.created_at)}
+                                  </span>
+                                </div>
+                              </div>
+                            </article>
+                          );
+                        })}
+                      </div>
+                    </motion.section>
+                  ))}
+                </motion.div>
+              </div>
+            )}
+          </div>
+
+          {!loading && grouped.length > 0 && (
+            <motion.button
+              onClick={() => navigate("/meal")}
+              initial={{ scale: 0, opacity: 0, y: 0 }}
+              animate={{ scale: 1, opacity: 1, y: [0, -6, 0] }}
+              transition={{
+                scale: {
+                  delay: 0.4,
+                  type: "spring",
+                  stiffness: 260,
+                  damping: 20,
+                },
+                opacity: { delay: 0.4, duration: 0.3 },
+                y: {
+                  delay: 1,
+                  duration: 2.4,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                },
+              }}
+              whileHover={{ scale: 1.15, y: -8 }}
+              whileTap={{ scale: 0.93, y: 0 }}
+              className="fixed bottom-20 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#2a7db5] shadow-2xl shadow-[#2a7db5]/30 sm:hidden"
+              aria-label={t("new_order")}
+              style={{ WebkitTapHighlightColor: "transparent" }}
+            >
+              <motion.span
+                className="absolute inset-0 rounded-full bg-[#2a7db5]"
+                animate={{ scale: [1, 1.55], opacity: [0.35, 0] }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeOut",
+                  delay: 1,
+                }}
+              />
+              <Plus className="relative h-6 w-6 text-white" strokeWidth={2.5} />
+            </motion.button>
+          )}
+        </div>
+        <Footer />
+      </div>
+
+      <AnimatePresence>
+        {selectedOrder &&
+          (() => {
+            const sc = getStatusConfig(selectedOrder.status);
+            const meal = getMealMeta(selectedOrder.meal.name);
+            const menuBody: string[] = selectedOrder.menu.body ?? [];
+
+            return (
+              <>
+                {/* Backdrop */}
+                <motion.div
+                  key="backdrop"
+                  className="fixed inset-0 z-10000 bg-black/30 backdrop-blur-[2px]"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.22 }}
+                  onClick={() => setSelectedOrder(null)}
+                />
+
+                {/* Sheet panel */}
+                <motion.aside
+                  key="sheet"
+                  className="fixed right-0 top-0 z-10001 flex h-full w-full max-w-sm flex-col bg-white shadow-2xl dark:bg-[#0d1e2d]"
+                  initial={{ x: "100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "100%" }}
+                  transition={{ type: "spring", stiffness: 320, damping: 38 }}
+                >
+                  {/* Colored top bar */}
+                  <div className={`h-1 w-full bg-linear-to-r ${meal.bar}`} />
+
+                  {/* Header */}
+                  <div className="flex items-start justify-between gap-3 border-b border-[#e2edf5] px-5 py-4 dark:border-[#1a2d3e]">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${meal.color}`}
+                      >
+                        {meal.icon}
+                      </div>
+                      <div>
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide ${meal.color}`}
+                        >
+                          {meal.label}
+                        </span>
+                        <h2 className="mt-0.5 text-base font-bold leading-tight text-[#0d2233] dark:text-[#ddeef7]">
+                          {selectedOrder.meal.name}
+                        </h2>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setSelectedOrder(null)}
+                      style={{ WebkitTapHighlightColor: "transparent" }}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#ccdfe9] bg-[#f4f9fd] text-[#5c85a0] transition-colors hover:border-[#2a7db5]/40 hover:bg-[#eaf4fb] hover:text-[#2a7db5] dark:border-[#1a2d3e] dark:bg-[#0a1520] dark:text-[#7a9baf]"
+                    >
+                      <ArrowLeft size={15} />
+                    </button>
                   </div>
 
-                  {/* Title row — h1 left, Filter + New order buttons right */}
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.1] text-[#0d2233] dark:text-[#ddeef7] mr-auto">
-                      {t("meal")}{" "}
-                      <em className="italic text-[#2a7db5]">{t("history")}</em>
-                    </h1>
+                  <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+                    <div className="flex items-center justify-between rounded-xl border border-[#e2edf5] bg-[#f8fbfd] px-4 py-3 dark:border-[#1a2d3e] dark:bg-[#0a1520]">
+                      <span className="text-xs font-semibold text-[#5c85a0] dark:text-[#7a9baf]">
+                        {t("status") ?? "Status"}
+                      </span>
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${sc.classes}`}
+                      >
+                        {sc.icon}
+                        {sc.label}
+                      </span>
+                    </div>
 
-                    {/* ── Filter button ── */}
-                    {!loading && orders.length > 0 && (
-                      <div className="relative flex items-center shrink-0">
-                        <button
-                          ref={filterBtnRef}
-                          onClick={handleOpenCal}
-                          style={{ WebkitTapHighlightColor: "transparent" }}
-                          className={`
-                            flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold
-                            transition-all duration-200 max-w-[180px] sm:max-w-[200px]
-                            ${
-                              calOpen || hasFilter
-                                ? "border-[#2a7db5] bg-[#2a7db5] text-white shadow-md"
-                                : "border-[#ccdfe9] bg-white text-[#5c85a0] hover:border-[#2a7db5]/40 hover:bg-[#eaf4fb] hover:text-[#2a7db5] dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#7a9baf]"
-                            }
-                          `}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-xl border border-[#e2edf5] bg-[#f8fbfd] p-3 dark:border-[#1a2d3e] dark:bg-[#0a1520]">
+                        <div className="mb-1.5 flex items-center gap-1.5 text-[0.6rem] font-bold uppercase tracking-wide text-[#5c85a0] dark:text-[#7a9baf]">
+                          <CalendarClock size={10} />
+                          {t("order_time") ?? "Time"}
+                        </div>
+                        <p className="font-mono text-sm font-semibold text-[#0d2233] dark:text-[#ddeef7]">
+                          {formatTime(selectedOrder.created_at)}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-[#e2edf5] bg-[#f8fbfd] p-3 dark:border-[#1a2d3e] dark:bg-[#0a1520]">
+                        <div className="mb-1.5 flex items-center gap-1.5 text-[0.6rem] font-bold uppercase tracking-wide text-[#5c85a0] dark:text-[#7a9baf]">
+                          <UtensilsCrossed size={10} />
+                          {t("meal_type") ?? "Meal type"}
+                        </div>
+                        <p className="text-sm font-semibold text-[#0d2233] dark:text-[#ddeef7]">
+                          {selectedOrder.meal.name}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl border border-[#e2edf5] bg-[#f8fbfd] p-3 dark:border-[#1a2d3e] dark:bg-[#0a1520]">
+                        <div className="mb-1.5 flex items-center gap-1.5 text-[0.6rem] font-bold uppercase tracking-wide text-[#5c85a0] dark:text-[#7a9baf]">
+                          <ChefHat size={10} />
+                          {t("menu_label") ?? "Menu"}
+                        </div>
+                        <p className="text-sm font-semibold text-[#0d2233] dark:text-[#ddeef7]">
+                          {selectedOrder.menu.name}
+                        </p>
+                      </div>
+                    </div>
+
+                    {menuBody.length > 0 && (
+                      <div>
+                        <div className="mb-3 flex items-center gap-2 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-[#5c85a0] dark:text-[#7a9baf]">
+                          <ListChecks size={12} className="text-[#2a7db5]" />
+                          {t("menu_dishes") ?? "Dishes"}
+                        </div>
+
+                        <motion.ul
+                          className="flex flex-col gap-2"
+                          initial="hidden"
+                          animate="show"
+                          variants={{
+                            hidden: {},
+                            show: { transition: { staggerChildren: 0.06 } },
+                          }}
                         >
-                          <CalendarDays size={14} className="shrink-0" />
-                          <span className="truncate">
-                            {filterLabel ?? t("filter")}
-                          </span>
-                          {hasFilter && (
-                            <span
-                              role="button"
-                              tabIndex={0}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                clearFilter();
-                                setCalOpen(false);
+                          {menuBody.map((dish, i) => (
+                            <motion.li
+                              key={i}
+                              variants={{
+                                hidden: { opacity: 0, x: 12 },
+                                show: {
+                                  opacity: 1,
+                                  x: 0,
+                                  transition: {
+                                    duration: 0.3,
+                                    ease: [0.22, 1, 0.36, 1],
+                                  },
+                                },
                               }}
-                              className="ml-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/25 hover:bg-white/40"
+                              className="flex items-center gap-3 rounded-xl border border-[#e2edf5] bg-[#f8fbfd] px-4 py-3 dark:border-[#1a2d3e] dark:bg-[#0a1520]"
                             >
-                              <X size={10} />
-                            </span>
-                          )}
-                        </button>
-
-                        {/*
-                        * ── Calendar dropdown ─────────────────────────────────────
-                        * Uses `position: fixed` + JS-computed `left` / `top` so it
-                        * always appears fully visible on every viewport size.
-                        * Right-aligned to the button by default; automatically
-                        * shifted left (or centered) when near the screen edge.
-                        */}
-                        <AnimatePresence>
-                          {calOpen && (
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0.95, y: -8 }}
-                              animate={{ opacity: 1, scale: 1, y: 0 }}
-                              exit={{ opacity: 0, scale: 0.95, y: -8 }}
-                              transition={{ duration: 0.16, ease: "easeOut" }}
-                              style={calStyle}
-                            >
-                              {/* Mode toggle */}
-                              <div className="mb-2 flex rounded-xl border border-[#ccdfe9] bg-white p-1 shadow-sm dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">
-                                {(["single", "range"] as Mode[]).map((m) => (
-                                  <button
-                                    key={m}
-                                    onClick={() => {
-                                      setCalMode(m);
-                                      setSelectedDay(null);
-                                      setRangeStart(null);
-                                      setRangeEnd(null);
-                                    }}
-                                    style={{
-                                      WebkitTapHighlightColor: "transparent",
-                                    }}
-                                    className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all duration-150
-                                      ${calMode === m ? "bg-[#2a7db5] text-white shadow-sm" : "text-[#7a9baf] hover:text-[#5c85a0] dark:hover:text-[#ddeef7]"}`}
-                                  >
-                                    {m === "single"
-                                      ? t("cal_day")
-                                      : t("cal_period")}
-                                  </button>
-                                ))}
-                              </div>
-
-                              <DrillCalendar
-                                mode={calMode}
-                                selected={selectedDay}
-                                rangeStart={rangeStart}
-                                rangeEnd={rangeEnd}
-                                onSelectSingle={setSelectedDay}
-                                onSelectRange={(s, e) => {
-                                  setRangeStart(s);
-                                  setRangeEnd(e);
-                                }}
-                                activeDates={activeDates}
-                              />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#eaf4fb] text-[0.6rem] font-bold text-[#2a7db5] dark:bg-[#0a1e2d] dark:text-[#64b6e0]">
+                                {i + 1}
+                              </span>
+                              <span className="text-sm font-medium text-[#0d2233] dark:text-[#ddeef7]">
+                                {dish}
+                              </span>
+                            </motion.li>
+                          ))}
+                        </motion.ul>
                       </div>
                     )}
 
-                    {/* ── New order button — same row as filter on sm+ ── */}
-                    {!loading && grouped.length > 0 && (
-                      <motion.button
-                        onClick={() => navigate("/meal")}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        className="hidden sm:flex items-center gap-2 rounded-xl bg-[#2a7db5] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-[#2a7db5]/20 transition-colors hover:bg-[#1e6fa0] shrink-0"
-                        style={{ WebkitTapHighlightColor: "transparent" }}
-                      >
-                        <Plus size={16} strokeWidth={2.5} />
-                        {t("new_order")}
-                      </motion.button>
+                    {selectedOrder.status === 3 && (
+                      <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/30 dark:bg-red-900/10">
+                        <div className="flex items-start gap-3">
+                          <div className="mt-0.5 text-red-500 dark:text-red-400">
+                            <AlertCircle size={18} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+                              {t("order_cancelled") ?? "Order cancelled"}
+                            </p>
+                            <p className="text-xs text-red-600 dark:text-red-300">
+                              {t("cancelled_by_nutritionist") ??
+                                "Cancelled by nutritionist"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </div>
-
-                  <div className="h-0.5 w-12 rounded bg-[#2a7db5]" />
-
-                  {/* Click-outside overlay — sits below the dropdown (z-[9998]) */}
-                  {calOpen && (
-                    <div
-                      className="fixed inset-0 z-[9998]"
-                      onClick={() => setCalOpen(false)}
-                    />
-                  )}
-                </div>
-              </motion.header>
-
-              {/* ── Empty state ── */}
-              {!loading && orders.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="flex flex-col items-center justify-center py-16 text-center"
-                >
-                  <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-2xl border border-[#ccdfe9] bg-white shadow-sm dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">
-                    <Utensils
-                      size={32}
-                      className="text-[#2a7db5]"
-                      strokeWidth={1.5}
-                    />
-                  </div>
-                  <p className="text-2xl font-bold text-[#0d2233] dark:text-[#ddeef7]">
-                    {t("no_orders_yet")}
-                  </p>
-                  <p className="mt-2 max-w-xs text-sm font-light text-[#5c85a0] dark:text-[#7a9baf]">
-                    {t("no_orders_desc")}
-                  </p>
-                  <motion.button
-                    onClick={() => navigate("/meal")}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="mt-6 flex items-center gap-2 rounded-xl bg-[#2a7db5] px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#2a7db5]/25 transition-colors hover:bg-[#1e6fa0]"
-                    style={{ WebkitTapHighlightColor: "transparent" }}
-                  >
-                    <Sparkles size={15} />
-                    {t("browse_menu")}
-                    <ChevronRight size={15} />
-                  </motion.button>
-                </motion.div>
-              ) : loading ? (
-                <div className="space-y-3">
-                  {[...Array(3)].map((_, i) => (
-                    <SkeletonCard key={i} />
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col gap-5">
-                  {/* No results after filter */}
-                  <AnimatePresence>
-                    {grouped.length === 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="flex flex-col items-center justify-center py-16 text-center"
-                      >
-                        <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-2xl border border-[#ccdfe9] bg-white shadow-sm dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">
-                          <Utensils
-                            size={32}
-                            className="text-[#2a7db5]"
-                            strokeWidth={1.5}
-                          />
-                        </div>
-                        <p className="text-2xl font-bold text-[#0d2233] dark:text-[#ddeef7]">
-                          {hasFilter ? t("no_orders_filtered") : t("no_orders_yet")}
-                        </p>
-                        <p className="mt-2 max-w-xs text-sm font-light text-[#5c85a0] dark:text-[#7a9baf]">
-                          {hasFilter
-                            ? t("no_orders_filtered_desc")
-                            : t("no_orders_desc")}
-                        </p>
-                        {!hasFilter && (
-                          <motion.button
-                            onClick={() => navigate("/meal")}
-                            whileHover={{ scale: 1.03 }}
-                            whileTap={{ scale: 0.97 }}
-                            className="mt-6 flex items-center gap-2 rounded-xl bg-[#2a7db5] px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#2a7db5]/25 transition-colors hover:bg-[#1e6fa0]"
-                            style={{ WebkitTapHighlightColor: "transparent" }}
-                          >
-                            <Sparkles size={15} />
-                            {t("browse_menu")}
-                            <ChevronRight size={15} />
-                          </motion.button>
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Grouped orders */}
-                  <motion.div
-                    key={`grp-${calMode}-${selectedDay?.getTime() ?? 0}-${rangeStart?.getTime() ?? 0}-${rangeEnd?.getTime() ?? 0}`}
-                    className="flex flex-col gap-6"
-                    initial="hidden"
-                    animate="show"
-                    variants={{
-                      hidden: {},
-                      show: { transition: { staggerChildren: 0.07 } },
-                    }}
-                  >
-                    {grouped.map(({ label, orders: dayOrders }) => (
-                      <motion.section
-                        key={label}
-                        variants={{
-                          hidden: { opacity: 0, y: 14 },
-                          show: {
-                            opacity: 1,
-                            y: 0,
-                            transition: {
-                              duration: 0.38,
-                              ease: [0.22, 1, 0.36, 1],
-                            },
-                          },
-                        }}
-                      >
-                        <div className="mb-2.5 flex items-center gap-3">
-                          <span className="text-xs font-bold capitalize text-[#5c85a0] dark:text-[#7a9baf]">
-                            {label}
-                          </span>
-                          <div className="h-px flex-1 bg-[#dde8f0] dark:bg-[#1a2d3e]" />
-                          <span className="text-[0.6rem] font-semibold text-[#7a9baf]">
-                            {dayOrders.length} {t("meals_count")}
-                          </span>
-                        </div>
-
-                        <div className="flex flex-col gap-2">
-                          {dayOrders.map((order) => {
-                            const sc = getStatusConfig(order.status);
-                            const meal = getMealMeta(order.meal.name);
-                            return (
-                              <article
-                                key={order.id}
-                                className="group overflow-hidden rounded-2xl border border-[#ccdfe9] bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2a7db5]/40 hover:shadow-lg dark:border-[#1a2d3e] dark:bg-[#0d1e2d]"
-                              >
-                                <div
-                                  className={`h-0.5 w-full bg-linear-to-r ${meal.bar}`}
-                                />
-                                <div className="flex items-center gap-3 px-5 py-4">
-                                  <div
-                                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 ${meal.color}`}
-                                  >
-                                    {meal.icon}
-                                  </div>
-                                  <div className="min-w-0 flex-1">
-                                    <span
-                                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide ${meal.color}`}
-                                    >
-                                      {meal.label}
-                                    </span>
-                                    <h3 className="mt-0.5 truncate text-sm font-bold leading-tight text-[#0d2233] dark:text-[#ddeef7] sm:text-base">
-                                      {order.meal.name}
-                                    </h3>
-                                    <p className="truncate text-xs font-light text-[#5c85a0] dark:text-[#7a9baf]">
-                                      {t("menu_label")} :{" "}
-                                      <span className="font-medium text-[#0d2233] dark:text-[#ddeef7]">
-                                        {order.menu.name}
-                                      </span>
-                                    </p>
-                                  </div>
-                                  <div className="flex shrink-0 flex-col items-end gap-1.5">
-                                    <span
-                                      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${sc.classes}`}
-                                    >
-                                      {sc.icon}
-                                      {sc.label}
-                                    </span>
-                                    <span className="rounded-lg border border-[#e2edf5] bg-[#f8fbfd] px-2.5 py-1 font-mono text-[0.65rem] font-medium text-[#2a7db5] dark:border-[#1a2d3e] dark:bg-[#0a1520] dark:text-[#5b9ec9]">
-                                      {formatTime(order.created_at)}
-                                    </span>
-                                  </div>
-                                </div>
-                              </article>
-                            );
-                          })}
-                        </div>
-                      </motion.section>
-                    ))}
-                  </motion.div>
-                </div>
-              )}
-            </div>
-            {!loading && grouped.length > 0 && (
-              <motion.button
-                onClick={() => navigate("/meal")}
-                initial={{ scale: 0, opacity: 0, y: 0 }}
-                animate={{
-                  scale: 1,
-                  opacity: 1,
-                  y: [0, -6, 0],
-                }}
-                transition={{
-                  scale: {
-                    delay: 0.4,
-                    type: "spring",
-                    stiffness: 260,
-                    damping: 20,
-                  },
-                  opacity: { delay: 0.4, duration: 0.3 },
-                  y: {
-                    delay: 1,
-                    duration: 2.4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  },
-                }}
-                whileHover={{ scale: 1.15, y: -8 }}
-                whileTap={{ scale: 0.93, y: 0 }}
-                className="fixed bottom-20 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#2a7db5] shadow-2xl shadow-[#2a7db5]/30 sm:hidden"
-                aria-label={t("new_order")}
-                style={{ WebkitTapHighlightColor: "transparent" }}
-              >
-                <motion.span
-                  className="absolute inset-0 rounded-full bg-[#2a7db5]"
-                  animate={{ scale: [1, 1.55], opacity: [0.35, 0] }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeOut",
-                    delay: 1,
-                  }}
-                />
-                <Plus className="relative h-6 w-6 text-white" strokeWidth={2.5} />
-              </motion.button>
-            )}
-          </div>
-        <Footer />
-      </div>
-      
-      
-      
+                </motion.aside>
+              </>
+            );
+          })()}
+      </AnimatePresence>
     </>
   );
 }

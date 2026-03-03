@@ -77,5 +77,8 @@ export const en = {
     retry: "Retry",
     errorLabel: "Error details",
     code: "ERR",
+    menu_dishes:'Dishes',
+     order_cancelled: "Order cancelled",
+    cancelled_by_nutritionist: "Cancelled by nutritionist"
   },
 };
