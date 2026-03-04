@@ -45,7 +45,6 @@ function OrderPage() {
   const [sejour, setSejour] = useState<sejourDto | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedOrder, setSelectedOrder] = useState<OrderDto | null>(null);
-
   const [calOpen, setCalOpen] = useState(false);
   const [calMode, setCalMode] = useState<Mode>("single");
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);

@@ -2,7 +2,7 @@ import type { OrderDto } from "@/models/order";
 import { formatTime } from "@/utils/helper";
 import { AnimatePresence, motion } from "framer-motion";
 import { t } from "i18next";
-import { AlertCircle, ArrowLeft, CalendarClock, CheckCircle, ChefHat, Clock, Coffee, ListChecks, Pizza, Soup, Utensils, UtensilsCrossed, XCircle } from "lucide-react";
+import { AlertCircle, ArrowRight, CalendarClock, CheckCircle, ChefHat, Clock, Coffee, ListChecks, Pizza, Soup, Utensils, UtensilsCrossed, XCircle } from "lucide-react";
 
 interface OrderDetailProps {
     order: OrderDto,
@@ -142,7 +142,7 @@ function OrderDetails (props: OrderDetailProps) {
                     style={{ WebkitTapHighlightColor: "transparent" }}
                     className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#ccdfe9] bg-[#f4f9fd] text-[#5c85a0] transition-colors hover:border-[#2a7db5]/40 hover:bg-[#eaf4fb] hover:text-[#2a7db5] dark:border-[#1a2d3e] dark:bg-[#0a1520] dark:text-[#7a9baf]"
                     >
-                    <ArrowLeft size={15} />
+                    <ArrowRight size={15} />
                     </button>
                 </div>
 
