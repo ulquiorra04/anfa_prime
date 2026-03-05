@@ -270,7 +270,7 @@ const LoadingSkeleton = () => (
     <div className="mx-7 h-px bg-[#dde8f0] dark:bg-[#1a2d3e]" />
     <div className="space-y-3 px-7 pb-7 pt-5">
       <div className="flex gap-2">
-        {[...Array(3)].map((_, i) => (
+        {[... new Array(3)].map((_, i) => (
           <div
             key={i}
             className="h-13 flex-1 rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]"
@@ -278,7 +278,7 @@ const LoadingSkeleton = () => (
         ))}
       </div>
       <div className="h-10 w-full rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]" />
-      {[...Array(3)].map((_, i) => (
+      {[... new Array(3)].map((_, i) => (
         <div
           key={i}
           className="h-14 w-full rounded-xl bg-[#dde8f0] dark:bg-[#1a2d3e]"
