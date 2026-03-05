@@ -16,13 +16,13 @@ export function DrillCalendar({
   onSelectRange,
   activeDates,
 }: {
-  mode: Mode;
-  selected: Date | null;
-  rangeStart: Date | null;
-  rangeEnd: Date | null;
-  onSelectSingle: (d: Date | null) => void;
-  onSelectRange: (s: Date | null, e: Date | null) => void;
-  activeDates: Date[];
+  readonly mode: Mode;
+  readonly selected: Date | null;
+  readonly rangeStart: Date | null;
+  readonly rangeEnd: Date | null;
+  readonly onSelectSingle: (d: Date | null) => void;
+  readonly onSelectRange: (s: Date | null, e: Date | null) => void;
+  readonly activeDates: Date[];
 }) {
   const today = new Date();
   const [step, setStep] = useState<Step>("year");
@@ -44,7 +44,7 @@ export function DrillCalendar({
   const startOffset = (firstDay.getDay() + 6) % 7;
   const daysInMonth = new Date(pickedYear, pickedMonth + 1, 0).getDate();
   const cells: (Date | null)[] = [
-    ...Array(startOffset).fill(null),
+    ...new Array(startOffset).fill(null),
     ...Array.from({ length: daysInMonth }, (_, i) => new Date(pickedYear, pickedMonth, i + 1)),
   ];
   while (cells.length % 7 !== 0) cells.push(null);
