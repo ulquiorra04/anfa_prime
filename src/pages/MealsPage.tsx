@@ -118,7 +118,7 @@ const MealsPage = () => {
 
               {loading ? (
                 <div className={`grid gap-5 ${colsClass} lg:gap-7`}>
-                  {[...Array(4)].map((_, i) => (
+                  {[...new Array(4)].map((_, i) => (
                     <Skeleton
                       key={i}
                       className="h-48 w-full rounded-2xl bg-[#e6f0f8] dark:bg-[#0e1e2d]"
