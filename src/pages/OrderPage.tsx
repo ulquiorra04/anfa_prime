@@ -33,7 +33,6 @@ import { useTranslation } from "react-i18next";
 import Footer from "@/components/footer/Footer";
 import SkeletonCard from "@/components/SkeletonCard";
 import OrderDetails from "@/components/OrderDetails";
-import ReactPullToRefresh from "react-pull-to-refresh"
 
 type Mode = "single" | "range";
 
@@ -121,43 +120,6 @@ function OrderPage() {
       }
     })();
   }, []);
-
-
-  /**
-   * setLoading(true);
-      const apiUrl =
-        import.meta.env.VITE_DEBUG === "true"
-          ? `data/sejour.json`
-          : `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_HISTORY}?sejour_id=${localStorage.getItem("sejourId")}`;
-      const reponse = await fetch(apiUrl);
-      if (!reponse.ok) {
-        setErrorMsg("Failed to fetch orders"); 
-      } else {
-        const sj: ResponseDto<sejourDto> = await reponse.json();
-        setOrders(sj.data?.orders ?? []);
-        setSejour(sj.data ?? null);
-        localStorage.setItem("patient", sj.data?.name ?? "");
-      }
-      setLoading(false)
-   */
-
-  async function handleRefresh () {
-    setLoading(true);
-      const apiUrl =
-        import.meta.env.VITE_DEBUG === "true"
-          ? `data/sejour.json`
-          : `${import.meta.env.VITE_API_URL}${import.meta.env.VITE_API_HISTORY}?sejour_id=${localStorage.getItem("sejourId")}`;
-      const reponse = await fetch(apiUrl);
-      if (!reponse.ok) {
-        setErrorMsg("Failed to fetch orders"); 
-      } else {
-        const sj: ResponseDto<sejourDto> = await reponse.json();
-        setOrders(sj.data?.orders ?? []);
-        setSejour(sj.data ?? null);
-        localStorage.setItem("patient", sj.data?.name ?? "");
-      }
-      setLoading(false)
-  }
 
   const activeDates = useMemo(
     () =>
@@ -302,8 +264,6 @@ function OrderPage() {
 
   return (
     <>
-      <ReactPullToRefresh onRefresh={handleRefresh}>
-
       <div className="flex flex-col h-full">
         <Navbar name={sejour?.name ?? "Your Menu"} />
         <div className="content-height flex-2 bg-[#f4f9fd] px-4 py-10 transition-colors duration-300 dark:bg-[#0a1520] sm:px-5 sm:py-14">
@@ -666,8 +626,6 @@ function OrderPage() {
       </div>
 
       {selectedOrder && <OrderDetails order={selectedOrder} onClick={() => setSelectedOrder(null)}  /> }
-
-        </ReactPullToRefresh>
     </>
   );
 }

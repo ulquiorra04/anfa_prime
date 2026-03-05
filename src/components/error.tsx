@@ -91,7 +91,7 @@ function ErrorComponent(
           className={`flex w-full flex-col gap-2.5 xs:flex-row sm:gap-3 ${isRtl ? "xs:flex-row-reverse" : ""}`}
         >
           <button
-            onClick={() => window.location.replace("/")}
+            onClick={() => window.location.replace(`/?sejour_id=${localStorage.getItem("sejourId")}`)}
             className="group mt-2 flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#ccdfe9] bg-white py-3 text-sm font-bold text-[#05668d] shadow-sm transition-all duration-200 hover:border-[#2a7db5]/50 hover:bg-[#eaf4fb] hover:shadow-md active:scale-[0.97] sm:py-3.5 dark:border-[#1a2d3e] dark:bg-[#0d1e2d] dark:text-[#29e3fc]"
           >
             <Home
