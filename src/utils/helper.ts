@@ -26,7 +26,7 @@ export const formatDayLabel = (d: Date) =>
 
 export const formatTime = (raw: string) => {
   const d = new Date(raw);
-  if (isNaN(d.getTime())) return raw;
+  if (Number.isNaN(d.getTime())) return raw;
   return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 };
 

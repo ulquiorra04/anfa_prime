@@ -124,7 +124,7 @@ function OrderPage() {
     () =>
       orders
         .map((o) => toDate(o.created_at))
-        .filter((d) => !isNaN(d.getTime())),
+        .filter((d) => !Number.isNaN(d.getTime())),
     [orders],
   );
 
@@ -160,7 +160,7 @@ function OrderPage() {
     const map = new Map<string, OrderDto[]>();
     filtered.forEach((o) => {
       const d = toDate(o.created_at);
-      const key = isNaN(d.getTime())
+      const key = Number.isNaN(d.getTime())
         ? "unknown"
         : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       if (!map.has(key)) map.set(key, []);
@@ -306,7 +306,7 @@ function OrderPage() {
                           {filterLabel ?? t("filter")}
                         </span>
                         {hasFilter && (
-                          <span
+                          <button
                             role="button"
                             tabIndex={0}
                             onClick={(e) => {
@@ -317,7 +317,7 @@ function OrderPage() {
                             className="ml-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-white/25 hover:bg-white/40"
                           >
                             <X size={10} />
-                          </span>
+                          </button>
                         )}
                       </button>
 
