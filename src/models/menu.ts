@@ -1,6 +1,6 @@
 
 export interface MenuDto {
-  menu_id: number;
+  id: number;
   name: string;
   body: string[];
 }

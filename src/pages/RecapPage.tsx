@@ -13,7 +13,7 @@ import {
   Clock,
 } from "lucide-react";
 import type { RecapState } from "@/models/recap";
-import { generateRef, formatDate, formatTime } from "@/utils/helper";
+import { formatDate, formatTime } from "@/utils/helper";
 import Navbar from "@/components/navbar/Navbar";
 import { useTranslation } from "react-i18next";
 import CourseTag from "@/components/CourseTag";
@@ -32,7 +32,7 @@ const RecapPage = () => {
   const meal = state?.meal;
   const menu = state?.menu;
 
-  const [ref] = useState<string>(generateRef);
+  //const [ref] = useState<string>(generateRef);
   const [date] = useState<string>(formatDate);
   const [time] = useState<string>(() => formatTime(new Date().toISOString()));
 
@@ -97,7 +97,6 @@ const RecapPage = () => {
 
 
   return (
-    <>
       <div className="flex flex-col h-full">
         <Navbar name={patient ?? ""} />
         <div className="content-height bg-[#f4f9fd] px-5 py-5 transition-colors duration-300 dark:bg-[#0a1520] sm:py-14">
@@ -239,7 +238,6 @@ const RecapPage = () => {
         </div>
         <Footer />
       </div>
-    </>
   );
 };
 

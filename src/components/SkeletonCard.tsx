@@ -1,5 +1,3 @@
-import React from 'react'
-
 export default function SkeletonCard() {
   return (
     <div className="animate-pulse overflow-hidden rounded-2xl border border-[#ccdfe9] bg-white dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">

@@ -9,7 +9,7 @@ interface NavbarProps {
   name: string;
 }
 
-export default function Navbar(props: NavbarProps) {
+export default function Navbar(props: Readonly<NavbarProps>) {
   const { t, i18n } = useTranslation();
   const theme = useContext(ThemeContext);
   if (!theme) throw new Error("ThemeContext undefined");

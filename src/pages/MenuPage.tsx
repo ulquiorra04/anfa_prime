@@ -138,7 +138,7 @@ const MenuPage = () => {
                         const tabTheme = TAB_THEMES[idx] ?? TAB_THEMES[0];
                         return (
                           <button
-                            key={menu.menu_id}
+                            key={menu.id}
                             onClick={() => {
                               setActiveTab(idx);
                               setActiveMenu(menu);
@@ -191,7 +191,7 @@ const MenuPage = () => {
                           return (
                             <>
                               <CourseRow
-                                    key={`${activeMenu.menu_id}-${idx}`} // Add a key here
+                                    key={`${activeMenu.id}-${idx}`} // Add a key here
                                 icon={Salad}
                                 label={`${t("dish")} ${idx + 1}`}
                                 value={el}

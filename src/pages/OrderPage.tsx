@@ -43,7 +43,7 @@ function OrderPage() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [sejour, setSejour] = useState<sejourDto | null>(null);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [selectedOrder, setSelectedOrder] = useState<OrderDto | null>(null);
   const [calOpen, setCalOpen] = useState(false);
   const [calMode, setCalMode] = useState<Mode>("single");
