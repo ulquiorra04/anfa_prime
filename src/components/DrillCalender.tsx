@@ -1,27 +1,18 @@
-import { DAY_HEADERS, isInRange, MONTH_NAMES, MONTH_SHORT } from "@/utils/helper";
+import { DAY_HEADERS, MONTH_NAMES, MONTH_SHORT } from "@/utils/helper";
 import { isSameDay } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
-type Mode = "single" | "range";
 type Step = "year" | "month" | "day";
 
 export function DrillCalendar({
-  mode,
   selected,
-  rangeStart,
-  rangeEnd,
   onSelectSingle,
-  onSelectRange,
   activeDates,
 }: {
-  readonly mode: Mode;
   readonly selected: Date | null;
-  readonly rangeStart: Date | null;
-  readonly rangeEnd: Date | null;
   readonly onSelectSingle: (d: Date | null) => void;
-  readonly onSelectRange: (s: Date | null, e: Date | null) => void;
   readonly activeDates: Date[];
 }) {
   const today = new Date();
@@ -29,7 +20,6 @@ export function DrillCalendar({
   const [pickedYear, setPickedYear] = useState(today.getFullYear());
   const [pickedMonth, setPickedMonth] = useState(today.getMonth());
   const [yearPage, setYearPage] = useState(0);
-  const [hovered, setHovered] = useState<Date | null>(null);
 
   const YEARS_PER_PAGE = 12;
   const baseYear = today.getFullYear() - 5 + yearPage * YEARS_PER_PAGE;
@@ -50,40 +40,11 @@ export function DrillCalendar({
   while (cells.length % 7 !== 0) cells.push(null);
 
   const handleDayClick = (d: Date) => {
-    if (mode === "single") {
-      onSelectSingle(selected && isSameDay(selected, d) ? null : d);
-    } else {
-      if (!rangeStart || (rangeStart && rangeEnd)) {
-        onSelectRange(d, null);
-      } else {
-        if (isSameDay(d, rangeStart)) {
-          onSelectRange(null, null);
-          return;
-        }
-        if (d < rangeStart) onSelectRange(d, rangeStart);
-        else onSelectRange(rangeStart, d);
-      }
-    }
+    onSelectSingle(selected && isSameDay(selected, d) ? null : d);
   };
 
   const getDayStyle = (d: Date) => {
-    if (mode === "single") {
-      if (selected && isSameDay(selected, d)) return "selected";
-      if (isSameDay(d, today)) return "today";
-      return "normal";
-    }
-    const effectiveEnd = rangeEnd ?? hovered;
-    const from = rangeStart && effectiveEnd
-      ? (rangeStart <= effectiveEnd ? rangeStart : effectiveEnd)
-      : rangeStart;
-    const to = rangeStart && effectiveEnd
-      ? (rangeStart <= effectiveEnd ? effectiveEnd : rangeStart)
-      : null;
-
-    if (rangeStart && isSameDay(d, rangeStart)) return "selected";
-    if (rangeEnd && isSameDay(d, rangeEnd)) return "selected";
-    if (!rangeEnd && hovered && rangeStart && isSameDay(d, hovered)) return "range-end-hover";
-    if (from && to && isInRange(d, from, to)) return "in-range";
+    if (selected && isSameDay(selected, d)) return "selected";
     if (isSameDay(d, today)) return "today";
     return "normal";
   };
@@ -101,7 +62,6 @@ export function DrillCalendar({
 
   const clearAll = () => {
     onSelectSingle(null);
-    onSelectRange(null, null);
   };
 
   return (
@@ -302,19 +262,11 @@ export function DrillCalendar({
                     <button
                       key={i}
                       onClick={() => handleDayClick(d)}
-                      onMouseEnter={() => mode === "range" && setHovered(d)}
-                      onMouseLeave={() => mode === "range" && setHovered(null)}
                       style={{ WebkitTapHighlightColor: "transparent" }}
                       className={`
                         relative flex min-h-8 flex-col items-center justify-center
                         text-[0.7rem] font-semibold transition-all duration-100
                         ${s === "selected" ? "z-10 rounded-lg bg-[#2a7db5] text-white shadow-md" : ""}
-                        ${s === "range-end-hover" ? "rounded-lg bg-[#2a7db5]/60 text-white" : ""}
-                        ${
-                          s === "in-range"
-                            ? "bg-[#2a7db5]/12 text-[#2a7db5] dark:bg-[#2a7db5]/20 dark:text-[#5b9ec9]"
-                            : ""
-                        }
                         ${
                           s === "today"
                             ? "rounded-lg border border-[#2a7db5]/50 text-[#2a7db5] dark:text-[#5b9ec9]"
@@ -344,7 +296,7 @@ export function DrillCalendar({
         </AnimatePresence>
       </div>
 
-      {(selected || rangeStart) && (
+      {selected && (
         <div className="border-t border-[#e8f0f6] px-3 py-2 dark:border-[#1a2d3e]">
           <button
             onClick={clearAll}

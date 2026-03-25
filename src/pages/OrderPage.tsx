@@ -23,7 +23,6 @@ import {
   formatDayLabel,
   formatDayShort,
   formatTime,
-  isInRange,
 } from "@/utils/helper";
 import ErrorComponent from "@/components/error";
 import type { ResponseDto } from "@/models/response";
@@ -33,8 +32,6 @@ import { useTranslation } from "react-i18next";
 import Footer from "@/components/footer/Footer";
 import SkeletonCard from "@/components/SkeletonCard";
 import OrderDetails from "@/components/OrderDetails";
-
-type Mode = "single" | "range";
 
 function OrderPage() {
   const navigate = useNavigate();
@@ -46,10 +43,7 @@ function OrderPage() {
   const [searchParams] = useSearchParams();
   const [selectedOrder, setSelectedOrder] = useState<OrderDto | null>(null);
   const [calOpen, setCalOpen] = useState(false);
-  const [calMode, setCalMode] = useState<Mode>("single");
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
-  const [rangeStart, setRangeStart] = useState<Date | null>(null);
-  const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
   const filterBtnRef = useRef<HTMLButtonElement>(null);
   const [calStyle, setCalStyle] = useState<React.CSSProperties>({});
 
@@ -128,34 +122,18 @@ function OrderPage() {
     [orders],
   );
 
-  const hasFilter = calMode === "single" ? !!selectedDay : !!rangeStart;
+  const hasFilter = !!selectedDay;
 
   const filterLabel = useMemo(() => {
-    if (calMode === "single" && selectedDay) return formatDayShort(selectedDay);
-    if (calMode === "range" && rangeStart && rangeEnd)
-      return `${formatDayShort(rangeStart)} → ${formatDayShort(rangeEnd)}`;
-    if (calMode === "range" && rangeStart)
-      return `${t("since")} ${formatDayShort(rangeStart)}`;
+    if (selectedDay) return formatDayShort(selectedDay);
     return null;
-  }, [calMode, selectedDay, rangeStart, rangeEnd, t]);
+  }, [selectedDay]);
 
   const grouped = useMemo(() => {
     const today = new Date();
-    let filtered: typeof orders;
-
-    if (calMode === "single" && selectedDay) {
-      filtered = orders.filter((o) =>
-        isSameDay(toDate(o.created_at), selectedDay),
-      );
-    } else if (calMode === "range" && rangeStart && rangeEnd) {
-      const from = rangeStart <= rangeEnd ? rangeStart : rangeEnd;
-      const to = rangeStart <= rangeEnd ? rangeEnd : rangeStart;
-      filtered = orders.filter((o) =>
-        isInRange(toDate(o.created_at), from, to),
-      );
-    } else {
-      filtered = orders.filter((o) => isSameDay(toDate(o.created_at), today));
-    }
+    const filtered = selectedDay
+      ? orders.filter((o) => isSameDay(toDate(o.created_at), selectedDay))
+      : orders.filter((o) => isSameDay(toDate(o.created_at), today));
 
     const map = new Map<string, OrderDto[]>();
     filtered.forEach((o) => {
@@ -174,12 +152,10 @@ function OrderPage() {
           key === "unknown" ? new Date() : toDate(dayOrders[0].created_at);
         return { label: formatDayLabel(d), orders: dayOrders };
       });
-  }, [orders, calMode, selectedDay, rangeStart, rangeEnd]);
+  }, [orders, selectedDay]);
 
   const clearFilter = () => {
     setSelectedDay(null);
-    setRangeStart(null);
-    setRangeEnd(null);
   };
 
   const getStatusConfig = (status: number) => {
@@ -330,38 +306,9 @@ function OrderPage() {
                             transition={{ duration: 0.16, ease: "easeOut" }}
                             style={calStyle}
                           >
-                            <div className="mb-2 flex rounded-xl border border-[#ccdfe9] bg-white p-1 shadow-sm dark:border-[#1a2d3e] dark:bg-[#0d1e2d]">
-                              {(["single", "range"] as Mode[]).map((m) => (
-                                <button
-                                  key={m}
-                                  onClick={() => {
-                                    setCalMode(m);
-                                    setSelectedDay(null);
-                                    setRangeStart(null);
-                                    setRangeEnd(null);
-                                  }}
-                                  style={{
-                                    WebkitTapHighlightColor: "transparent",
-                                  }}
-                                  className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all duration-150
-                                    ${calMode === m ? "bg-[#2a7db5] text-white shadow-sm" : "text-[#7a9baf] hover:text-[#5c85a0] dark:hover:text-[#ddeef7]"}`}
-                                >
-                                  {m === "single"
-                                    ? t("cal_day")
-                                    : t("cal_period")}
-                                </button>
-                              ))}
-                            </div>
                             <DrillCalendar
-                              mode={calMode}
                               selected={selectedDay}
-                              rangeStart={rangeStart}
-                              rangeEnd={rangeEnd}
                               onSelectSingle={setSelectedDay}
-                              onSelectRange={(s, e) => {
-                                setRangeStart(s);
-                                setRangeEnd(e);
-                              }}
                               activeDates={activeDates}
                             />
                           </motion.div>
@@ -480,7 +427,7 @@ function OrderPage() {
                 </AnimatePresence>
 
                 <motion.div
-                  key={`grp-${calMode}-${selectedDay?.getTime() ?? 0}-${rangeStart?.getTime() ?? 0}-${rangeEnd?.getTime() ?? 0}`}
+                  key={`grp-${selectedDay?.getTime() ?? 0}`}
                   className="flex flex-col gap-6"
                   initial="hidden"
                   animate="show"
@@ -624,7 +571,7 @@ function OrderPage() {
         <Footer />
       </div>
 
-      {selectedOrder && <OrderDetails order={selectedOrder} onClick={() => setSelectedOrder(null)}  /> }
+      {selectedOrder && <OrderDetails order={selectedOrder} onClick={() => setSelectedOrder(null)} /> }
     </>
   );
 }
