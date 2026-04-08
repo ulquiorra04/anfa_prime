@@ -94,7 +94,6 @@ function OrderDetails (props: OrderDetailProps) {
 
 
     return (
-        <>
             <AnimatePresence>
                 <motion.div
                 key="backdrop"
@@ -254,7 +253,6 @@ function OrderDetails (props: OrderDetailProps) {
                 </div>
                 </motion.aside>
             </AnimatePresence>
-        </>
     );
 }
 

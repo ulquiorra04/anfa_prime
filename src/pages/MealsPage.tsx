@@ -19,7 +19,7 @@ const MealsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [patient, setPatient] = useState<string | null>(null);
-  
+
 
   const [pressedId, setPressedId] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -94,7 +94,6 @@ const MealsPage = () => {
           : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
 
   return (
-    <>
       <div className="flex flex-col h-full">
         <Navbar name={patient ?? "NO Patient"} />
           <div className="content-height flex-2 bg-[#f4f9fd] px-4 py-5 transition-colors duration-300 dark:bg-[#0a1520] sm:px-5 sm:py-14">
@@ -225,7 +224,6 @@ const MealsPage = () => {
           </div>
         <Footer />
       </div>
-    </>
   );
 };
 
