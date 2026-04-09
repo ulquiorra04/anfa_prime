@@ -79,6 +79,18 @@ export const en = {
     code: "ERR",
     menu_dishes:'Dishes',
      order_cancelled: "Order cancelled",
-    cancelled_by_nutritionist: "Cancelled by nutritionist"
-  },
+    cancelled_by_nutritionist: "Cancelled by nutritionist",
+  schedule_for_later: "Schedule for later delivery",
+  delivery_scheduling_hint: "Choose a different date and time for your meal delivery",
+  delivery_scheduling: "Delivery Scheduling",
+  delivery_date: "Delivery Date",
+  delivery_time: "Delivery Time",
+  delivery_date_hint: "Select a date for your meal delivery (maximum 7 days in advance)",
+  delivery_time_hint: "Choose your preferred delivery time slot",
+delivery_summary: "Delivery Summary",
+  your_order_will_be_delivered_on: "Your order will be delivered on",
+  at: "at",
+  today: "Today",
+  tomorrow: "Tomorrow",
+}
 };
