@@ -5,7 +5,24 @@
         {
             "id": 1,
             "name": "Menu 1",
-            "body": ["Salade verte", "Poulet rôti avec légumes", "Tarte aux pommes"]
+            "body": 
+            [
+                {
+                    "libelle": "Salade verte",
+                    "isSelected": true,
+                    "options": ["Sauce tomate", "Sauce béchamel", "Sauce au poivre"]
+                },
+                {
+                    "libelle": "Poulet rôti avec légumes",
+                    "isSelected": false,
+                    "options": ["Riz", "Pâtes", "Frites", "Légumes"]
+                },
+                {
+                    "libelle": "Tarte aux pommes",
+                    "isSelected": false,
+                    "options": ["Riz", "Pâtes", "Frites", "Légumes"]
+                }
+            ]
         },
         {
             "id": 2,
